@@ -32,3 +32,11 @@ def test_parse_latex_equation_block():
     assert result["text"] == "Consider the following equation: This is the quadratic formula."
     assert result["formulas"] == ["x = \frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}"]
     assert result["metadata"] is None
+
+def test_parse_latex_align_block():
+    parser = ProblemParser()
+    problem = "Here is an alignment:\n\\begin{align}\nA &= B + C \\\\ \\label{eq:1}\\ \\ \\ &= D - E\n\\end{align}\nThis is an aligned equation."
+    result = parser.parse_problem(problem)
+    assert result["text"] == "Here is an alignment: This is an aligned equation."
+    assert result["formulas"] == ["A &= B + C \\\\ \\label{eq:1}\\ \\ \\ &= D - E"]
+    assert result["metadata"] is None

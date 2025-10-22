@@ -5,6 +5,7 @@ class ProblemParser:
     def __init__(self):
         self.formula_patterns = {
             "latex_block": r'\\begin{equation}(.*?)\\end{equation}',
+            "latex_align": r'\\begin{align}(.*?)\\end{align}',
             "display": r'\$\$(.*?)\$\$',
             "inline": r'\$(.+?)\$',
         }
