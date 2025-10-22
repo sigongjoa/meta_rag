@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 class ProblemParser:
     def __init__(self):
         self.formula_patterns = {
+            "latex_block": r'\\begin{equation}(.*?)\\end{equation}',
             "display": r'\$\$(.*?)\$\$',
             "inline": r'\$(.+?)\$',
         }
