@@ -36,15 +36,46 @@ embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 parser = ProblemParser()
 llm = ChatOpenAI()
 
-# Pre-compute embeddings and create FAISS index
-sample_texts = [parser.parse_problem(p)["text"] for p in sample_problems.values()]
-sample_embeddings = embedding_model.encode(sample_texts)
-sample_ids = list(sample_problems.keys())
-dimension = sample_embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(sample_embeddings)
+# --- Helper function for Dual Embedding ---
+def get_dual_embedding(problem_text: str, parser: ProblemParser, model: SentenceTransformer):
+    parsed_problem = parser.parse_problem(problem_text)
+    text_embedding = model.encode([parsed_problem["text"]])[0]
+    
+    formula_embeddings = []
+    if parsed_problem["formulas"]:
+        formula_embeddings = model.encode(parsed_problem["formulas"])
+    
+    if len(formula_embeddings) > 0:
+        avg_formula_embedding = np.mean(formula_embeddings, axis=0)
+        combined_embedding = np.mean([text_embedding, avg_formula_embedding], axis=0)
+    else:
+        combined_embedding = text_embedding
+        
+    return combined_embedding.reshape(1, -1)
 
-print("FAISS index created and models loaded.")
+FAISS_INDEX_PATH = "poc_index.faiss"
+
+# --- Pre-compute embeddings and create/load FAISS index ---
+dimension = embedding_model.get_sentence_embedding_dimension()
+sample_ids = list(sample_problems.keys())
+
+if os.path.exists(FAISS_INDEX_PATH):
+    print(f"Loading existing FAISS index from {FAISS_INDEX_PATH}.")
+    index = faiss.read_index(FAISS_INDEX_PATH)
+else:
+    print(f"No FAISS index found. Creating a new one at {FAISS_INDEX_PATH}.")
+    index = faiss.IndexFlatL2(dimension)
+    all_embeddings = []
+    for problem_text in sample_problems.values():
+        embedding = get_dual_embedding(problem_text, parser, embedding_model)
+        all_embeddings.append(embedding)
+    
+    sample_embeddings = np.vstack(all_embeddings)
+    index.add(sample_embeddings)
+    faiss.write_index(index, FAISS_INDEX_PATH)
+    print(f"New FAISS index created and saved to {FAISS_INDEX_PATH}.")
+
+print("FAISS index and models loaded.")
 
 # --- LangChain Setup ---
 prompt = ChatPromptTemplate.from_template(
@@ -54,10 +85,11 @@ prompt = ChatPromptTemplate.from_template(
     You found a very similar problem that was solved before. Here is the similar problem:
     Similar Problem: {similar_problem}
 
-    Based on the similar problem, generate a step-by-step thought process to help the student solve their original question. 
+    Based on the similar problem, provide a step-by-step thinking process to help the student solve their original question. 
     Explain the reasoning at each step. Do not solve the problem directly, but guide them.
     
     Your generated thought process:"""
+)
 )
 chain = prompt | llm | StrOutputParser()
 
@@ -68,11 +100,8 @@ def read_root():
 
 @app.post("/solve")
 async def solve_problem(input: ProblemInput):
-    # 1. Parse
-    parsed_input = parser.parse_problem(input.problem_text)
-    
-    # 2. Embed
-    input_embedding = embedding_model.encode([parsed_input["text"]])
+    # 1. Parse & 2. Embed (Dual Embedding)
+    input_embedding = get_dual_embedding(input.problem_text, parser, embedding_model)
     
     # 3. Retrieve
     k = 1
