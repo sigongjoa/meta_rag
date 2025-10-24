@@ -6,6 +6,7 @@ class ProblemParser:
         self.formula_patterns = {
             "latex_block": r'\\begin{equation}(.*?)\\end{equation}',
             "latex_align": r'\\begin{align}(.*?)\\end{align}',
+            "latex_gather": r'\\begin{gather}(.*?)\\end{gather}',
             "display": r'\$\$(.*?)\$\$',
             "inline": r'\$(.+?)\$',
         }

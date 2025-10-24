@@ -40,3 +40,19 @@ def test_parse_latex_align_block():
     assert result["text"] == "Here is an alignment: This is an aligned equation."
     assert result["formulas"] == ["A &= B + C \\\\ \\label{eq:1}\\ \\ \\ &= D - E"]
     assert result["metadata"] is None
+
+def test_parse_multiple_formulas():
+    parser = ProblemParser()
+    problem = "An inline formula $a=1$, a display formula $$\sum_{i=1}^n i = \\frac{n(n+1)}{2}$$, and an equation block \\begin{equation}e^{i\\pi} + 1 = 0\\end{equation}."
+    result = parser.parse_problem(problem)
+    assert result["text"] == "An inline formula , a display formula , and an equation block ."
+    assert sorted(result["formulas"]) == sorted(["a=1", "\\sum_{i=1}^n i = \\frac{n(n+1)}{2}", "e^{i\\pi} + 1 = 0"])
+    assert result["metadata"] is None
+
+def test_parse_latex_gather_block():
+    parser = ProblemParser()
+    problem = "A gather environment: \\begin{gather} a = b+c \\\\ d = e+f+g \\end{gather}"
+    result = parser.parse_problem(problem)
+    assert result["text"] == "A gather environment:"
+    assert result["formulas"] == ["a = b+c \\\\ d = e+f+g"]
+    assert result["metadata"] is None
