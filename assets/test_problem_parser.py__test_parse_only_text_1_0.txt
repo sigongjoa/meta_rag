@@ -1,0 +1,3 @@
+{'formulas': [],
+ 'metadata': None,
+ 'text': 'This is a simple text problem with no formulas.'}

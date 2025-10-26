@@ -1,0 +1,1 @@
+{'formulas': ['x^2+y^2=z^2'], 'metadata': None, 'text': 'The main equation is.'}

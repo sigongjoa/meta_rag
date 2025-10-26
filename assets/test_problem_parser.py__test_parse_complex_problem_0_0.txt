@@ -1,0 +1,11 @@
+Input Problem:
+This is a more complex problem. It has an inline formula, like $E=mc^2$, and also a display formula:
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+Here is another inline formula: $a^2 + b^2 = c^2$.
+Let's also include a LaTeX environment:
+\begin{equation}
+\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+\end{equation}
+This should be parsed correctly. What do you think?

@@ -7,7 +7,7 @@ langchain
 openai
 langchain-community
 # Dependencies for TangentCFT
-gensim==4.3.3
+gensim
 matplotlib==3.10.1
 numpy==1.26.4
 beautifulsoup4==4.13.3

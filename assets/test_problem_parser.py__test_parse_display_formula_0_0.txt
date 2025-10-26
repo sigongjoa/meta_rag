@@ -1,0 +1,2 @@
+Input Problem:
+The main equation is $$x^2+y^2=z^2$$. 

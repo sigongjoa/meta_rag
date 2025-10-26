@@ -1,0 +1,1 @@
+{'formulas': ['a+b=c'], 'metadata': None, 'text': 'The equation is.'}

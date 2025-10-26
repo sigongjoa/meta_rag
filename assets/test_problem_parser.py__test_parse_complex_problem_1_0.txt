@@ -1,0 +1,9 @@
+{'formulas': ['E=mc^2',
+              '\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}',
+              '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}',
+              'a^2 + b^2 = c^2'],
+ 'metadata': None,
+ 'text': 'This is a more complex problem. It has an inline formula, like, and '
+         "also a display formula: Here is another inline formula:. Let's also "
+         'include a LaTeX environment: This should be parsed correctly. What '
+         'do you think?'}
