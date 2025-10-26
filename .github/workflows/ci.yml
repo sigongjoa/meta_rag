@@ -18,14 +18,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run pytest to generate report
-        run: pytest --html=report.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
