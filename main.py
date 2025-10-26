@@ -90,7 +90,6 @@ prompt = ChatPromptTemplate.from_template(
     
     Your generated thought process:"""
 )
-)
 chain = prompt | llm | StrOutputParser()
 
 # --- API Endpoints ---
