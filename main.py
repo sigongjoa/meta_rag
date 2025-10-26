@@ -6,14 +6,12 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import faiss
 from langchain.prompts import ChatPromptTemplate
-from langchain.chat_models import ChatOpenAI
 from langchain.schema.output_parser import StrOutputParser
 from graph_db_manager import GraphDBManager
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
 
 # --- Environment and Setup ---
-# Make sure to set your OPENAI_API_KEY in your environment variables
-if "OPENAI_API_KEY" not in os.environ:
-    print("Warning: OPENAI_API_KEY environment variable not set.")
 
 # --- PoC Sample Data ---
 sample_problems = {
@@ -36,7 +34,20 @@ app = FastAPI(
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 parser = ProblemParser()
 graph_db = GraphDBManager()
-# llm = ChatOpenAI() # Moved initialization to where it's used
+
+# --- Local LLM Setup ---
+print("Loading local LLM...")
+model_id = "google/flan-t5-base"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+pipe = pipeline(
+    "text2text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    max_length=512
+)
+llm = HuggingFacePipeline(pipeline=pipe)
+print("Local LLM loaded.")
 
 # --- Helper function for Dual Embedding ---
 def get_dual_embedding(problem_text: str, parser: ProblemParser, model: SentenceTransformer):
@@ -127,7 +138,7 @@ prompt = ChatPromptTemplate.from_template(
     
     Your generated thought process:"""
 )
-# chain = prompt | llm | StrOutputParser() # Moved to solve_problem
+chain = prompt | llm | StrOutputParser()
 
 # --- API Endpoints ---
 @app.get("/")
@@ -136,8 +147,6 @@ def read_root():
 
 @app.post("/solve")
 async def solve_problem(input: ProblemInput):
-    llm = ChatOpenAI()
-    chain = prompt | llm | StrOutputParser()
     # 1. Parse & 2. Embed (Dual Embedding)
     input_embedding = get_dual_embedding(input.problem_text, parser, embedding_model)
     
