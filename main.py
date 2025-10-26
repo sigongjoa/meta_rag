@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import faiss
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.schema.output_parser import StrOutputParser
+from langchain_core.output_parsers import StrOutputParser
 from graph_db_manager import GraphDBManager
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
