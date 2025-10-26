@@ -8,6 +8,7 @@ import faiss
 from langchain.prompts import ChatPromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.schema.output_parser import StrOutputParser
+from graph_db_manager import GraphDBManager
 
 # --- Environment and Setup ---
 # Make sure to set your OPENAI_API_KEY in your environment variables
@@ -34,6 +35,7 @@ app = FastAPI(
 # --- Models and Data Loading on Startup ---
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 parser = ProblemParser()
+graph_db = GraphDBManager()
 # llm = ChatOpenAI() # Moved initialization to where it's used
 
 # --- Helper function for Dual Embedding ---
@@ -76,6 +78,41 @@ else:
     print(f"New FAISS index created and saved to {FAISS_INDEX_PATH}.")
 
 print("FAISS index and models loaded.")
+
+# --- GraphDB Integration ---
+def extract_concepts(text: str) -> list[str]:
+    """
+    A very simple concept extractor. 
+    It splits text, lowercases words, and removes common stop words.
+    """
+    stop_words = {'a', 'an', 'the', 'is', 'in', 'on', 'of', 'what', 'are', 'which', 'to'}
+    # Remove punctuation and split
+    words = ''.join(c for c in text if c.isalnum() or c.isspace()).lower().split()
+    return [word for word in words if word not in stop_words and len(word) > 2]
+
+def populate_graph_db(db_manager: GraphDBManager, problems: dict):
+    """
+    Populates the graph database with problems and extracted concepts.
+    """
+    print("Populating Knowledge Graph...")
+    for problem_id, problem_text in problems.items():
+        # Add problem to graph
+        db_manager.add_problem(problem_id, problem_text)
+        
+        # Parse problem to separate text from formulas
+        parsed_problem = parser.parse_problem(problem_text)
+        
+        # Extract concepts from the text part
+        concepts = extract_concepts(parsed_problem['text'])
+        
+        # Link problem to its concepts
+        db_manager.link_problem_to_concepts(problem_id, concepts)
+    
+    print("Knowledge Graph population complete.")
+    print(f"Graph Info: {db_manager.get_graph_info()}")
+
+# Populate the graph on startup
+populate_graph_db(graph_db, sample_problems)
 
 # --- LangChain Setup ---
 prompt = ChatPromptTemplate.from_template(
