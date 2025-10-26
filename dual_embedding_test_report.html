@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Embedding Verification Test Report</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; margin: 2em; }
+        h1, h2 { color: #333; }
+        pre { background-color: #f4f4f4; padding: 1em; border-radius: 5px; }
+        .result { border: 1px solid #ddd; padding: 1em; margin-bottom: 1em; border-radius: 5px; }
+        .correct { color: green; font-weight: bold; }
+        .incorrect { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Dual Embedding Verification Test</h1>
+    <p>This report shows the results of a test comparing the 'Dual Embedding' strategy against a 'Single Embedding' baseline.</p>
+    
+    <div class="query">
+        <h2>Test Query</h2>
+        <pre>Find the roots of the polynomial $y^2 - 4 = 0$.</pre>
+        <p><strong>Target Similar Problem (ID 2):</strong> <pre>Solve the equation $x^2 - 4 = 0$.</pre></p>
+    </div>
+
+    <div class="result">
+        <h2>Dual Embedding Result</h2>
+        <p>Retrieved problem ID: 2</p>
+        <p>Retrieved problem text: <pre>Solve the equation $x^2 - 4 = 0$.</pre></p>
+        <p>Match: <span class="correct">Correct</span></p>
+    </div>
+
+    <div class="result">
+        <h2>Single Embedding (Baseline) Result</h2>
+        <p>Retrieved problem ID: 2</p>
+        <p>Retrieved problem text: <pre>Solve the equation $x^2 - 4 = 0$.</pre></p>
+        <p>Match: <span class="correct">Correct</span></p>
+    </div>
+
+    <div class="conclusion">
+        <h2>Conclusion</h2>
+        <pre>Both methods found the correct problem. The benefit of dual embedding may be more apparent in more complex cases.</pre>
+    </div>
+</body>
+</html>
