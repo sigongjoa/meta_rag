@@ -1,0 +1,1 @@
+Test Query: Find the roots of the polynomial $y^2 - 4 = 0$.

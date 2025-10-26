@@ -34,7 +34,7 @@ app = FastAPI(
 # --- Models and Data Loading on Startup ---
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 parser = ProblemParser()
-llm = ChatOpenAI()
+# llm = ChatOpenAI() # Moved initialization to where it's used
 
 # --- Helper function for Dual Embedding ---
 def get_dual_embedding(problem_text: str, parser: ProblemParser, model: SentenceTransformer):
@@ -90,7 +90,7 @@ prompt = ChatPromptTemplate.from_template(
     
     Your generated thought process:"""
 )
-chain = prompt | llm | StrOutputParser()
+# chain = prompt | llm | StrOutputParser() # Moved to solve_problem
 
 # --- API Endpoints ---
 @app.get("/")
@@ -99,6 +99,8 @@ def read_root():
 
 @app.post("/solve")
 async def solve_problem(input: ProblemInput):
+    llm = ChatOpenAI()
+    chain = prompt | llm | StrOutputParser()
     # 1. Parse & 2. Embed (Dual Embedding)
     input_embedding = get_dual_embedding(input.problem_text, parser, embedding_model)
     
