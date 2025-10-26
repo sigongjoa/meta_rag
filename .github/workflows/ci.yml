@@ -1,28 +1,80 @@
-name: Deploy Pytest Report
+name: v2 CI/CD for Meta-RAG Backend (Terraform)
 
 on:
   push:
-    branches: [ master, main ]
+    branches:
+      - main
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+env:
+  GCP_REGION: asia-northeast3
+  GAR_REPOSITORY: meta-rag-repo
+  SERVICE_NAME: meta-rag-backend-v2
+  TERRAFORM_DIR: ./terraform
 
 jobs:
-  deploy:
+  test:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        run: pytest
+
+  deploy:
+    name: Build and Deploy to Cloud Run via Terraform
+    needs: test
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        id: build-image
+        run: |
+          IMAGE_TAG=${{ env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+          echo "image_name=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform -chdir=${{ env.TERRAFORM_DIR }} init
+
+      - name: Terraform Plan
+        run: terraform -chdir=${{ env.TERRAFORM_DIR }} plan -var="image_name=${{ steps.build-image.outputs.image_name }}"
+
+      - name: Terraform Apply
+        run: terraform -chdir=${{ env.TERRAFORM_DIR }} apply -auto-approve -var="image_name=${{ steps.build-image.outputs.image_name }}"
