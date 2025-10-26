@@ -5,7 +5,7 @@ from problem_parser import ProblemParser
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import faiss
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from graph_db_manager import GraphDBManager
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
