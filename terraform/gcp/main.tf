@@ -2,7 +2,11 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.0"
+      version = ">= 5.25.0" # Explicitly set minimum version
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = ">= 5.25.0" # Explicitly set minimum version for beta provider
     }
     aws = {
       source  = "hashicorp/aws"
@@ -12,6 +16,11 @@ terraform {
 }
 
 provider "google" {
+  project = var.gcp_project_id
+  region  = var.gcp_region
+}
+
+provider "google-beta" {
   project = var.gcp_project_id
   region  = var.gcp_region
 }
@@ -104,6 +113,7 @@ resource "google_vertex_ai_index_endpoint" "vector_index_endpoint" {
 
 # 5. Create the API Gateway API
 resource "google_api_gateway_api" "api" {
+  provider = google-beta
   project = var.gcp_project_id
   api_id  = var.api_id
 }
@@ -111,6 +121,7 @@ resource "google_api_gateway_api" "api" {
 # 6. Create the API Gateway API Config
 # This reads the OpenAPI spec, injects the Cloud Run backend URL, and creates a config.
 resource "google_api_gateway_api_config" "api_config" {
+  provider = google-beta
   project      = var.gcp_project_id
   api          = google_api_gateway_api.api.api_id
   api_config_id = var.api_config_id
@@ -133,6 +144,7 @@ resource "google_api_gateway_api_config" "api_config" {
 
 # 7. Create the Gateway itself
 resource "google_api_gateway_gateway" "gateway" {
+  provider = google-beta
   project  = var.gcp_project_id
   region   = var.gcp_region
   gateway_id = var.gateway_id
