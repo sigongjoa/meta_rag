@@ -2,7 +2,20 @@ import pytest
 import pytest_html
 import faiss
 import numpy as np
-from main import get_dual_embedding, sample_problems, parser, embedding_model, sample_ids, dimension
+
+# Imports moved from main to make the test self-contained
+from problem_parser import ProblemParser
+from sentence_transformers import SentenceTransformer
+from main import get_dual_embedding # This function is still valid to import
+
+# Data moved from main to make the test self-contained
+sample_problems = {
+    1: "What is the derivative of $x^2$?",
+    2: "Solve the equation $x^2 - 4 = 0$.",
+    3: "Explain the Pythagorean theorem, which is $a^2 + b^2 = c^2$.",
+    4: "What are the roots of the quadratic equation $x^2 - 5x + 6 = 0$?",
+}
+sample_ids = list(sample_problems.keys())
 
 # Helper function for single embedding, as it's not part of the main logic
 def get_single_embedding(problem_text: str, model):
@@ -11,21 +24,28 @@ def get_single_embedding(problem_text: str, model):
 def test_dual_embedding_effectiveness(extras):
     """ 
     Tests the effectiveness of dual embedding compared to single embedding.
+    The test now creates its own models and FAISS indices instead of importing them.
     """
-    # --- Setup ---
+    # --- Setup: Instantiate models and create indices inside the test ---
+    parser = ProblemParser()
+    embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+    dimension = embedding_model.get_sentence_embedding_dimension()
+
     test_query = "Find the roots of the polynomial $y^2 - 4 = 0$."
     target_problem_id = 2
     
-    # Load the dual embedding FAISS index created by main.py
-    dual_index = faiss.read_index("poc_index.faiss")
+    # Create the dual embedding FAISS index for this test run
+    dual_index = faiss.IndexFlatL2(dimension)
+    dual_embeddings = np.vstack([get_dual_embedding(p, parser, embedding_model).reshape(1, -1) for p in sample_problems.values()])
+    dual_index.add(dual_embeddings)
 
-    # Create a new FAISS index for single embeddings for the baseline test
+    # Create the single embedding FAISS index for the baseline test
     single_index = faiss.IndexFlatL2(dimension)
     single_embeddings = np.vstack([get_single_embedding(p, embedding_model) for p in sample_problems.values()])
     single_index.add(single_embeddings)
 
     # --- Test Dual Embedding ---
-    dual_embedding_vector = get_dual_embedding(test_query, parser, embedding_model)
+    dual_embedding_vector = get_dual_embedding(test_query, parser, embedding_model).reshape(1, -1)
     _, dual_indices = dual_index.search(dual_embedding_vector, 1)
     retrieved_id_dual = sample_ids[dual_indices[0][0]]
     
