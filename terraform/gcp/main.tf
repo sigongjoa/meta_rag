@@ -91,6 +91,7 @@ resource "google_vertex_ai_index" "vector_index" {
 
 # 4. Vertex AI Index Endpoint and Deployment
 resource "google_vertex_ai_index_endpoint" "vector_index_endpoint" {
+  provider = google-beta
   # This resource will only be created if the index is also being created.
   count = length(google_vertex_ai_index.vector_index) > 0 ? 1 : 0
 
