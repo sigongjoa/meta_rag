@@ -75,10 +75,16 @@ jobs:
         run: terraform -chdir=terraform/gcp init
 
       - name: Terraform Plan for GCP
-        run: terraform -chdir=terraform/gcp plan -var="image_name=${{ steps.build-gcp-image.outputs.image_name }}"
+        env:
+          TF_VAR_vector_index_dimensions: 384
+          TF_VAR_vector_index_contents_uri: "gs://meta_rag_bucket/embeddings/"
+        run: terraform -chdir=terraform/gcp plan -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" -var="image_name=${{ steps.build-gcp-image.outputs.image_name }}"
 
       - name: Terraform Apply for GCP
-        run: terraform -chdir=terraform/gcp apply -auto-approve -var="image_name=${{ steps.build-gcp-image.outputs.image_name }}"
+        env:
+          TF_VAR_vector_index_dimensions: 384
+          TF_VAR_vector_index_contents_uri: "gs://meta_rag_bucket/embeddings/"
+        run: terraform -chdir=terraform/gcp apply -auto-approve -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" -var="image_name=${{ steps.build-gcp-image.outputs.image_name }}"
 
   deploy-aws:
     name: Build and Deploy to AWS ECR

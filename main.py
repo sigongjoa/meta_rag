@@ -4,12 +4,12 @@ from pydantic import BaseModel
 from problem_parser import ProblemParser
 from sentence_transformers import SentenceTransformer
 import numpy as np
-import faiss
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from graph_db_manager import GraphDBManager
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
+from google.cloud import aiplatform
+import google.auth
 
 # --- Environment and Setup ---
 
@@ -27,13 +27,14 @@ class ProblemInput(BaseModel):
 
 app = FastAPI(
     title="Meta-RAG PoC API",
-    version="0.3.0",
+    version="0.4.0", # Version updated to reflect Vertex AI integration
 )
 
-# --- Models and Data Loading on Startup ---
+# --- Models Loading on Startup ---
+print("Loading embedding and parsing models...")
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 parser = ProblemParser()
-graph_db = GraphDBManager()
+print("Embedding and parsing models loaded.")
 
 # --- Local LLM Setup ---
 print("Loading local LLM...")
@@ -48,6 +49,22 @@ pipe = pipeline(
 )
 llm = HuggingFacePipeline(pipeline=pipe)
 print("Local LLM loaded.")
+
+# --- Vertex AI Client Initialization ---
+print("Initializing Vertex AI Client...")
+INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID")
+if not INDEX_ENDPOINT_ID:
+    raise ValueError("The environment variable INDEX_ENDPOINT_ID is not set.")
+
+credentials, project_id = google.auth.default()
+# The region must match the region where the index endpoint is deployed.
+aiplatform.init(project=project_id, location="asia-northeast3")
+
+index_endpoint = aiplatform.MatchingEngineIndexEndpoint(
+    index_endpoint_name=INDEX_ENDPOINT_ID
+)
+print(f"Vertex AI client initialized for endpoint: {INDEX_ENDPOINT_ID}")
+
 
 # --- Helper function for Dual Embedding ---
 def get_dual_embedding(problem_text: str, parser: ProblemParser, model: SentenceTransformer):
@@ -64,66 +81,7 @@ def get_dual_embedding(problem_text: str, parser: ProblemParser, model: Sentence
     else:
         combined_embedding = text_embedding
         
-    return combined_embedding.reshape(1, -1)
-
-FAISS_INDEX_PATH = "poc_index.faiss"
-
-# --- Pre-compute embeddings and create/load FAISS index ---
-dimension = embedding_model.get_sentence_embedding_dimension()
-sample_ids = list(sample_problems.keys())
-
-if os.path.exists(FAISS_INDEX_PATH):
-    print(f"Loading existing FAISS index from {FAISS_INDEX_PATH}.")
-    index = faiss.read_index(FAISS_INDEX_PATH)
-else:
-    print(f"No FAISS index found. Creating a new one at {FAISS_INDEX_PATH}.")
-    index = faiss.IndexFlatL2(dimension)
-    all_embeddings = []
-    for problem_text in sample_problems.values():
-        embedding = get_dual_embedding(problem_text, parser, embedding_model)
-        all_embeddings.append(embedding)
-    
-    sample_embeddings = np.vstack(all_embeddings)
-    index.add(sample_embeddings)
-    faiss.write_index(index, FAISS_INDEX_PATH)
-    print(f"New FAISS index created and saved to {FAISS_INDEX_PATH}.")
-
-print("FAISS index and models loaded.")
-
-# --- GraphDB Integration ---
-def extract_concepts(text: str) -> list[str]:
-    """
-    A very simple concept extractor. 
-    It splits text, lowercases words, and removes common stop words.
-    """
-    stop_words = {'a', 'an', 'the', 'is', 'in', 'on', 'of', 'what', 'are', 'which', 'to'}
-    # Remove punctuation and split
-    words = ''.join(c for c in text if c.isalnum() or c.isspace()).lower().split()
-    return [word for word in words if word not in stop_words and len(word) > 2]
-
-def populate_graph_db(db_manager: GraphDBManager, problems: dict):
-    """
-    Populates the graph database with problems and extracted concepts.
-    """
-    print("Populating Knowledge Graph...")
-    for problem_id, problem_text in problems.items():
-        # Add problem to graph
-        db_manager.add_problem(problem_id, problem_text)
-        
-        # Parse problem to separate text from formulas
-        parsed_problem = parser.parse_problem(problem_text)
-        
-        # Extract concepts from the text part
-        concepts = extract_concepts(parsed_problem['text'])
-        
-        # Link problem to its concepts
-        db_manager.link_problem_to_concepts(problem_id, concepts)
-    
-    print("Knowledge Graph population complete.")
-    print(f"Graph Info: {db_manager.get_graph_info()}")
-
-# Populate the graph on startup
-populate_graph_db(graph_db, sample_problems)
+    return combined_embedding
 
 # --- LangChain Setup ---
 prompt = ChatPromptTemplate.from_template(
@@ -150,12 +108,23 @@ async def solve_problem(input: ProblemInput):
     # 1. Parse & 2. Embed (Dual Embedding)
     input_embedding = get_dual_embedding(input.problem_text, parser, embedding_model)
     
-    # 3. Retrieve
+    # 3. Retrieve from Vertex AI
     k = 1
-    distances, indices = index.search(input_embedding, k)
-    most_similar_id = sample_ids[indices[0][0]]
-    most_similar_problem_text = sample_problems[most_similar_id]
+    response = index_endpoint.find_neighbors(
+        queries=[input_embedding.tolist()], # Vertex AI requires a list for the embedding
+        num_neighbors=k
+    )
     
+    # The response structure from Vertex AI is different from FAISS
+    if response and response[0]:
+        neighbor = response[0][0]
+        most_similar_id = int(neighbor.id)
+        # The original problem text must be looked up from the in-memory dictionary
+        most_similar_problem_text = sample_problems.get(most_similar_id, "Similar problem text not found.")
+    else:
+        most_similar_id = -1
+        most_similar_problem_text = "No similar problem found."
+
     # 4. Generate
     generated_thought_process = chain.invoke({
         "question": input.problem_text,
@@ -163,7 +132,7 @@ async def solve_problem(input: ProblemInput):
     })
 
     return {
-        "message": "Successfully generated thought process.",
+        "message": "Successfully generated thought process using Vertex AI.",
         "received_problem": input.problem_text,
         "retrieved_similar_problem": {
             "id": most_similar_id,

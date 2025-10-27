@@ -18,6 +18,5 @@ pytest-html
 # Graph Database & GCP
 networkx
 google-cloud-aiplatform
-neo4j
 transformers
 accelerate

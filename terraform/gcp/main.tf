@@ -30,6 +30,7 @@ resource "google_cloud_run_v2_service" "default" {
   location = var.gcp_region
 
   template {
+    service_account = google_service_account.cloud_run_sa.email
     containers {
       image = var.image_name # This will be provided by the CI/CD pipeline
       ports {
@@ -41,6 +42,10 @@ resource "google_cloud_run_v2_service" "default" {
           memory = "1Gi"
         }
       }
+      env {
+        name  = "INDEX_ENDPOINT_ID"
+        value = google_vertex_ai_index_endpoint.vector_index_endpoint[0].name
+      }
     }
     scaling {
       min_instance_count = 0 # Start with 0 for cost-efficiency, can be set to 1 for production
@@ -50,4 +55,112 @@ resource "google_cloud_run_v2_service" "default" {
   # Allow unauthenticated access for now.
   # This will be locked down by API Gateway later.
   ingress = "INGRESS_TRAFFIC_ALL"
+}
+
+# 3. Vertex AI Vector Search Index
+resource "google_vertex_ai_index" "vector_index" {
+  # This resource will only be created if the required variables are provided.
+  count = var.vector_index_dimensions != null && var.vector_index_contents_uri != null ? 1 : 0
+
+  project      = var.gcp_project_id
+  region       = var.gcp_region
+  display_name = var.vector_index_display_name
+
+  metadata {
+    contents_delta_uri = var.vector_index_contents_uri
+    config {
+      dimensions = var.vector_index_dimensions
+      approximate_neighbors_count = 10
+      algorithm_config {
+        tree_ah_config {
+          leaf_node_embedding_count = 500
+        }
+      }
+    }
+  }
+}
+
+# 4. Vertex AI Index Endpoint and Deployment
+resource "google_vertex_ai_index_endpoint" "vector_index_endpoint" {
+  # This resource will only be created if the index is also being created.
+  count = length(google_vertex_ai_index.vector_index) > 0 ? 1 : 0
+
+  project      = var.gcp_project_id
+  region       = var.gcp_region
+  display_name = var.vector_index_endpoint_display_name
+  public_endpoint_enabled = true
+
+  # Deploy the index to the endpoint
+  deployed_indexes {
+    id = "meta_rag_deployed_index"
+    index = google_vertex_ai_index.vector_index[0].name
+  }
+
+  # The endpoint creation should wait for the index to be ready.
+  depends_on = [google_vertex_ai_index.vector_index]
+}
+
+# --- API Gateway ---
+
+# 5. Create the API Gateway API
+resource "google_api_gateway_api" "api" {
+  project = var.gcp_project_id
+  api_id  = var.api_id
+}
+
+# 6. Create the API Gateway API Config
+# This reads the OpenAPI spec, injects the Cloud Run backend URL, and creates a config.
+resource "google_api_gateway_api_config" "api_config" {
+  project      = var.gcp_project_id
+  api          = google_api_gateway_api.api.api_id
+  api_config_id = var.api_config_id
+
+  openapi_documents {
+    document {
+      path = "openapi.yaml"
+      # Dynamically inject the backend address into the OpenAPI spec
+      contents = base64encode(replace(
+        file("${path.module}/../../docs/api/openapi.yaml"),
+        "      security:",
+        "      x-google-backend:\n        address: ${google_cloud_run_v2_service.default.uri}\n      security:"
+      ))
+    }
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# 7. Create the Gateway itself
+resource "google_api_gateway_gateway" "gateway" {
+  project  = var.gcp_project_id
+  region   = var.gcp_region
+  gateway_id = var.gateway_id
+  api_config = google_api_gateway_api_config.api_config.id
+}
+
+# 8. Grant API Gateway permission to invoke the Cloud Run service
+resource "google_cloud_run_v2_service_iam_member" "api_gateway_invoker" {
+  project  = google_cloud_run_v2_service.default.project
+  location = google_cloud_run_v2_service.default.location
+  name     = google_cloud_run_v2_service.default.name
+  role     = "roles/run.invoker"
+  # The member is the service account created for the API Config
+  member   = "serviceAccount:${google_api_gateway_api_config.api_config.service_account}"
+}
+
+# --- Cloud Run Service Account and Permissions ---
+
+# 9. Create a dedicated Service Account for the Cloud Run service
+resource "google_service_account" "cloud_run_sa" {
+  project      = var.gcp_project_id
+  account_id   = var.cloud_run_service_account_id
+  display_name = "Meta-RAG Cloud Run Service Account"
+}
+
+# 10. Grant the Cloud Run SA permission to use Vertex AI
+resource "google_project_iam_member" "cloud_run_sa_ai_user" {
+  project = var.gcp_project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }

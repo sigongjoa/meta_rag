@@ -25,3 +25,51 @@ variable "image_name" {
   description = "The full name of the container image to deploy."
   type        = string
 }
+
+variable "vector_index_display_name" {
+  description = "The display name for the Vertex AI Index."
+  type        = string
+  default     = "meta-rag-vector-index"
+}
+
+variable "vector_index_contents_uri" {
+  description = "The GCS path to the directory containing the embedding data."
+  type        = string
+  default     = null
+}
+
+variable "vector_index_dimensions" {
+  description = "The number of dimensions for the vectors."
+  type        = number
+  default     = null
+}
+
+variable "vector_index_endpoint_display_name" {
+  description = "The display name for the Vertex AI Index Endpoint."
+  type        = string
+  default     = "meta-rag-vector-index-endpoint"
+}
+
+variable "api_id" {
+  description = "The ID of the API Gateway API."
+  type        = string
+  default     = "meta-rag-api"
+}
+
+variable "api_config_id" {
+  description = "The ID of the API Gateway API Config."
+  type        = string
+  default     = "meta-rag-api-config"
+}
+
+variable "gateway_id" {
+  description = "The ID of the API Gateway."
+  type        = string
+  default     = "meta-rag-gateway"
+}
+
+variable "cloud_run_service_account_id" {
+  description = "The ID for the Cloud Run dedicated service account."
+  type        = string
+  default     = "meta-rag-cr-sa"
+}

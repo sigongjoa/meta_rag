@@ -44,4 +44,11 @@ Thumbs.db
 .ipynb_checkpoints/
 
 # Ollama models (if downloaded locally)
-# ~/.ollama/
+venv/
+.pytest_cache/
+__pycache__/
+*.log
+*.tmp
+
+# Generated data files
+embeddings.json
