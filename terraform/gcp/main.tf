@@ -157,6 +157,13 @@ resource "google_api_gateway_gateway" "gateway" {
   region   = var.gcp_region
   gateway_id = var.gateway_id
   api_config = google_api_gateway_api_config.api_config.id
+  provider = google-beta # Ensure this is also using beta provider
+
+  gateway_config {
+    backend_config {
+      service_account = google_service_account.api_gateway_sa.email
+    }
+  }
 }
 
 # 8. Grant API Gateway permission to invoke the Cloud Run service
@@ -166,7 +173,7 @@ resource "google_cloud_run_v2_service_iam_member" "api_gateway_invoker" {
   name     = google_cloud_run_v2_service.default.name
   role     = "roles/run.invoker"
   # The member is the service account created for the API Config
-  member   = "serviceAccount:${google_api_gateway_api_config.api_config.service_account}"
+  member   = "serviceAccount:${google_api_gateway_gateway.gateway.gateway_config.backend_config.service_account}"
 }
 
 # --- Cloud Run Service Account and Permissions ---
@@ -176,6 +183,13 @@ resource "google_service_account" "cloud_run_sa" {
   project      = var.gcp_project_id
   account_id   = var.cloud_run_service_account_id
   display_name = "Meta-RAG Cloud Run Service Account"
+}
+
+# 10. Create a dedicated Service Account for the API Gateway
+resource "google_service_account" "api_gateway_sa" {
+  project      = var.gcp_project_id
+  account_id   = var.api_gateway_service_account_id
+  display_name = "Meta-RAG API Gateway Service Account"
 }
 
 # 10. Grant the Cloud Run SA permission to use Vertex AI

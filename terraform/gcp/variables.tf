@@ -73,3 +73,9 @@ variable "cloud_run_service_account_id" {
   type        = string
   default     = "meta-rag-cr-sa"
 }
+
+variable "api_gateway_service_account_id" {
+  description = "The ID for the API Gateway dedicated service account."
+  type        = string
+  default     = "meta-rag-gw-sa"
+}
