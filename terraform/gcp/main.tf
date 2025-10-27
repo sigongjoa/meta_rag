@@ -100,15 +100,22 @@ resource "google_vertex_ai_index_endpoint" "vector_index_endpoint" {
   display_name = var.vector_index_endpoint_display_name
   public_endpoint_enabled = true
 
-  # Deploy the index to the endpoint
-  deployed_indexes {
-    id = "meta_rag_deployed_index"
-    index = google_vertex_ai_index.vector_index[0].name
-  }
-
   # The endpoint creation should wait for the index to be ready.
   depends_on = [google_vertex_ai_index.vector_index]
 }
+
+# 5. Deploy the Index to the Endpoint
+resource "google_vertex_ai_index_endpoint_deployed_index" "deployment" {
+  provider = google-beta # Add this based on previous findings
+  # This resource will only be created if the index and endpoint are also being created.
+  count = length(google_vertex_ai_index_endpoint.vector_index_endpoint) > 0 ? 1 : 0
+
+  index_endpoint    = google_vertex_ai_index_endpoint.vector_index_endpoint[0].id
+  index             = google_vertex_ai_index.vector_index[0].id
+  deployed_index_id = "meta-rag-deployed-index"
+  region            = var.gcp_region # Use variable for region
+}
+
 
 # --- API Gateway ---
 
