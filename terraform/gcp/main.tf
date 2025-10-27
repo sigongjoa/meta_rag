@@ -157,7 +157,6 @@ resource "google_api_gateway_gateway" "gateway" {
   region   = var.gcp_region
   gateway_id = var.gateway_id
   api_config = google_api_gateway_api_config.api_config.id
-  provider = google-beta # Ensure this is also using beta provider
 
   gateway_config {
     backend_config {
