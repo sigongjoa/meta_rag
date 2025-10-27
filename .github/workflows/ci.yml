@@ -72,7 +72,7 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init for GCP
-        run: terraform -chdir=terraform/gcp init
+        run: terraform -chdir=terraform/gcp init -upgrade
 
       - name: Terraform Plan for GCP
         env:
