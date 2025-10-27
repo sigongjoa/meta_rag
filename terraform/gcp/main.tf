@@ -152,17 +152,12 @@ resource "google_api_gateway_api_config" "api_config" {
 
 # 7. Create the Gateway itself
 resource "google_api_gateway_gateway" "gateway" {
-  provider = google-beta
-  project  = var.gcp_project_id
-  region   = var.gcp_region
-  gateway_id = var.gateway_id
+  provider  = google-beta
+  api       = google_api_gateway_api.api.id
   api_config = google_api_gateway_api_config.api_config.id
-
-  gateway_config {
-    backend_config {
-      service_account = google_service_account.api_gateway_sa.email
-    }
-  }
+  region    = var.gcp_region
+  gateway_id = var.gateway_id
+  display_name = var.gateway_id # Using gateway_id as display_name for clarity
 }
 
 # 8. Grant API Gateway permission to invoke the Cloud Run service
