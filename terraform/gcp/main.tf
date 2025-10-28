@@ -41,7 +41,7 @@ resource "google_cloud_run_v2_service" "default" {
   location = var.gcp_region
 
   template {
-    service_account = google_service_account.cloud_run_sa.email
+    service_account = data.google_service_account.cloud_run_sa.email
     containers {
       image = var.image_name # This will be provided by the CI/CD pipeline
       ports {
@@ -168,28 +168,26 @@ resource "google_cloud_run_v2_service_iam_member" "api_gateway_invoker" {
   name     = google_cloud_run_v2_service.default.name
   role     = "roles/run.invoker"
   # The member is the service account created for the API Config
-  member   = "serviceAccount:${google_service_account.api_gateway_sa.email}"
+  member   = "serviceAccount:${data.google_service_account.api_gateway_sa.email}"
 }
 
 # --- Cloud Run Service Account and Permissions ---
 
 # 9. Create a dedicated Service Account for the Cloud Run service
-resource "google_service_account" "cloud_run_sa" {
+data "google_service_account" "cloud_run_sa" {
   project      = var.gcp_project_id
   account_id   = var.cloud_run_service_account_id
-  display_name = "Meta-RAG Cloud Run Service Account"
 }
 
 # 10. Create a dedicated Service Account for the API Gateway
-resource "google_service_account" "api_gateway_sa" {
+data "google_service_account" "api_gateway_sa" {
   project      = var.gcp_project_id
   account_id   = var.api_gateway_service_account_id
-  display_name = "Meta-RAG API Gateway Service Account"
 }
 
 # 10. Grant the Cloud Run SA permission to use Vertex AI
 resource "google_project_iam_member" "cloud_run_sa_ai_user" {
   project = var.gcp_project_id
   role    = "roles/aiplatform.user"
-  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
+  member  = "serviceAccount:${data.google_service_account.cloud_run_sa.email}"
 }
