@@ -116,8 +116,8 @@ resource "google_api_gateway_api_config" "api_config" {
       # Dynamically inject the backend address into the OpenAPI spec
       contents = base64encode(replace(
         file("${path.module}/../../docs/api/openapi.yaml"),
-        "      security:",
-        "      x-google-backend:\n        address: ${data.google_cloud_run_v2_service.default.uri}\n      security:"
+        "ADDRESS_PLACEHOLDER",
+        data.google_cloud_run_v2_service.default.uri
       ))
     }
   }

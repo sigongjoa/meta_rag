@@ -17,6 +17,8 @@ paths:
       operationId: "chatWithRAG"
       tags:
         - "Chat"
+      x-google-backend:
+        address: "ADDRESS_PLACEHOLDER"
       security:
         - bearerAuth: []
       consumes:
