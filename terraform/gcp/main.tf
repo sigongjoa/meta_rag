@@ -35,37 +35,11 @@ resource "google_artifact_registry_repository" "default" {
 }
 */
 
-# 2. Cloud Run v2 Service
-resource "google_cloud_run_v2_service" "default" {
+# 2. Cloud Run v2 Service (Use existing one)
+data "google_cloud_run_v2_service" "default" {
   name     = var.service_name
   location = var.gcp_region
-
-  template {
-    service_account = data.google_service_account.cloud_run_sa.email
-    containers {
-      image = var.image_name # This will be provided by the CI/CD pipeline
-      ports {
-        container_port = 8000
-      }
-      resources {
-        limits = {
-          cpu    = "1000m"
-          memory = "1Gi"
-        }
-      }
-#       env {
-#         name  = "INDEX_ENDPOINT_ID"
-#         value = google_vertex_ai_index_endpoint.vector_index_endpoint[0].name
-#       }
-    }
-    scaling {
-      min_instance_count = 0 # Start with 0 for cost-efficiency, can be set to 1 for production
-    }
-  }
-
-  # Allow unauthenticated access for now.
-  # This will be locked down by API Gateway later.
-  ingress = "INGRESS_TRAFFIC_ALL"
+  project  = var.gcp_project_id # data 블록에서는 project ID 명시 필요
 }
 
 # 3. Vertex AI Vector Search Index
@@ -156,16 +130,16 @@ resource "google_api_gateway_api_config" "api_config" {
 resource "google_api_gateway_gateway" "gateway" {
   provider  = google-beta
   api_config = "projects/${var.gcp_project_id}/locations/global/apis/${var.api_id}/configs/${var.api_config_id}"
-  region    = var.gcp_region
+  region    = "asia-northeast1"
   gateway_id = var.gateway_id
   display_name = var.gateway_id # Using gateway_id as display_name for clarity
 }
 
 # 8. Grant API Gateway permission to invoke the Cloud Run service
 resource "google_cloud_run_v2_service_iam_member" "api_gateway_invoker" {
-  project  = google_cloud_run_v2_service.default.project
-  location = google_cloud_run_v2_service.default.location
-  name     = google_cloud_run_v2_service.default.name
+  project  = data.google_cloud_run_v2_service.default.project
+  location = data.google_cloud_run_v2_service.default.location
+  name     = data.google_cloud_run_v2_service.default.name
   role     = "roles/run.invoker"
   # The member is the service account created for the API Config
   member   = "serviceAccount:${data.google_service_account.api_gateway_sa.email}"
