@@ -18,7 +18,7 @@ paths:
       tags:
         - "Chat"
       x-google-backend:
-        address: "ADDRESS_PLACEHOLDER"
+        address: "${cloud_run_uri}"
       security:
         - bearerAuth: []
       consumes:

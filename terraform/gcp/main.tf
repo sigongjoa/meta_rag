@@ -112,13 +112,11 @@ resource "google_api_gateway_api_config" "api_config" {
 
   openapi_documents {
     document {
-      path = "openapi.yaml"
+      path = "openapi.yaml.tpl"
       # Dynamically inject the backend address into the OpenAPI spec
-      contents = base64encode(replace(
-        file("${path.module}/../../docs/api/openapi.yaml"),
-        "ADDRESS_PLACEHOLDER",
-        data.google_cloud_run_v2_service.default.uri
-      ))
+      contents = base64encode(templatefile("${path.module}/../../docs/api/openapi.yaml.tpl", {
+        cloud_run_uri = data.google_cloud_run_v2_service.default.uri
+      }))
     }
   }
   lifecycle {
