@@ -117,7 +117,7 @@ resource "google_api_gateway_api_config" "api_config" {
       contents = base64encode(replace(
         file("${path.module}/../../docs/api/openapi.yaml"),
         "      security:",
-        "      x-google-backend:\n        address: ${google_cloud_run_v2_service.default.uri}\n      security:"
+        "      x-google-backend:\n        address: ${data.google_cloud_run_v2_service.default.uri}\n      security:"
       ))
     }
   }
