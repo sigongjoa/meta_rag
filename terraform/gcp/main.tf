@@ -122,18 +122,18 @@ resource "google_vertex_ai_index" "vector_index" {
 # --- API Gateway ---
 
 # 5. Create the API Gateway API
-resource "google_api_gateway_api" "api" {
-  provider = google-beta
-  project = var.gcp_project_id
-  api_id  = var.api_id
-}
+# resource "google_api_gateway_api" "api" {
+#   provider = google-beta
+#   project = var.gcp_project_id
+#   api_id  = var.api_id
+# }
 
 # 6. Create the API Gateway API Config
 # This reads the OpenAPI spec, injects the Cloud Run backend URL, and creates a config.
 resource "google_api_gateway_api_config" "api_config" {
   provider = google-beta
   project      = var.gcp_project_id
-  api          = google_api_gateway_api.api.api_id
+  api          = var.api_id
   api_config_id = var.api_config_id
 
   openapi_documents {
@@ -155,7 +155,7 @@ resource "google_api_gateway_api_config" "api_config" {
 # 7. Create the Gateway itself
 resource "google_api_gateway_gateway" "gateway" {
   provider  = google-beta
-  api_config = "projects/${var.gcp_project_id}/locations/global/apis/${google_api_gateway_api.api.api_id}/configs/${var.api_config_id}"
+  api_config = "projects/${var.gcp_project_id}/locations/global/apis/${var.api_id}/configs/${var.api_config_id}"
   region    = var.gcp_region
   gateway_id = var.gateway_id
   display_name = var.gateway_id # Using gateway_id as display_name for clarity
