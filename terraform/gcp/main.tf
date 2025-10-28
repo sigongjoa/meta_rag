@@ -122,23 +122,29 @@ resource "google_vertex_ai_index" "vector_index" {
 # --- API Gateway ---
 
 # 5. Create the API Gateway API
-data "google_api_gateway_api" "api" {
+resource "google_api_gateway_api" "api" {
   provider = google-beta
   project = var.gcp_project_id
   api_id  = var.api_id
 }
 
 # 6. Create the API Gateway API Config
+# This reads the OpenAPI spec, injects the Cloud Run backend URL, and creates a config.
 resource "google_api_gateway_api_config" "api_config" {
   provider = google-beta
   project      = var.gcp_project_id
-  api          = data.google_api_gateway_api.api.api_id
+  api          = google_api_gateway_api.api.api_id
   api_config_id = var.api_config_id
 
   openapi_documents {
     document {
-      path = "../../docs/api/openapi.yaml"
-      contents = filebase64("${path.module}/../../docs/api/openapi.yaml")
+      path = "openapi.yaml"
+      # Dynamically inject the backend address into the OpenAPI spec
+      contents = base64encode(replace(
+        file("${path.module}/../../docs/api/openapi.yaml"),
+        "      security:",
+        "      x-google-backend:\n        address: ${google_cloud_run_v2_service.default.uri}\n      security:"
+      ))
     }
   }
   lifecycle {
@@ -149,14 +155,10 @@ resource "google_api_gateway_api_config" "api_config" {
 # 7. Create the Gateway itself
 resource "google_api_gateway_gateway" "gateway" {
   provider  = google-beta
-  api_config = google_api_gateway_api_config.api_config.id
+  api_config = "projects/${var.gcp_project_id}/locations/global/apis/${google_api_gateway_api.api.api_id}/configs/${var.api_config_id}"
   region    = var.gcp_region
   gateway_id = var.gateway_id
   display_name = var.gateway_id # Using gateway_id as display_name for clarity
-  
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 # 8. Grant API Gateway permission to invoke the Cloud Run service
