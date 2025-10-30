@@ -52,3 +52,4 @@ __pycache__/
 
 # Generated data files
 embeddings.json
+terraform/gcp/terraform.tfstate.*.backup

@@ -63,15 +63,18 @@ async def lifespan(app: FastAPI):
 
     print("Initializing Vertex AI Client...")
     INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID")
+    DEPLOYED_INDEX_ID = os.getenv("DEPLOYED_INDEX_ID")  # Read the new environment variable
     if INDEX_ENDPOINT_ID:
         credentials, project_id = google.auth.default()
         aiplatform.init(project=project_id, location="asia-northeast3")
         app.state.index_endpoint = aiplatform.MatchingEngineIndexEndpoint(
             index_endpoint_name=INDEX_ENDPOINT_ID
         )
+        app.state.deployed_index_id = DEPLOYED_INDEX_ID  # Store it in the app state
         print(f"Vertex AI client initialized for endpoint: {INDEX_ENDPOINT_ID}")
     else:
         app.state.index_endpoint = None
+        app.state.deployed_index_id = None
         print("Warning: INDEX_ENDPOINT_ID not set. Vertex AI client not initialized.")
 
     # Create LangChain chain and store it in state
@@ -128,7 +131,8 @@ async def solve_problem(input: ProblemInput, request: Request):
     k = 1
     response = index_endpoint.find_neighbors(
         queries=[input_embedding.tolist()],
-        num_neighbors=k
+        num_neighbors=k,
+        deployed_index_id=os.getenv("DEPLOYED_INDEX_ID")
     )
     
     # The response structure from Vertex AI is different from FAISS

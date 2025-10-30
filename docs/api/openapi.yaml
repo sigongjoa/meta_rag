@@ -4,47 +4,125 @@ info:
   description: "API for the Meta-RAG system, providing answers from a dual-path RAG backend."
   version: "1.0.0"
 
-host: "meta-rag-api.your-domain.com"
-basePath: "/v1"
+
 schemes:
+
+
   - "https"
 
+
 paths:
+
+
   /chat:
+
+
     post:
+
+
       summary: "Send a query to the RAG system"
+
+
       description: "Receives a user query, routes it to the appropriate backend path (simple or advanced), and returns a generated answer with source context."
+
+
       operationId: "chatWithRAG"
+
+
       tags:
+
+
         - "Chat"
+
+
       x-google-backend:
-        address: "${cloud_run_uri}"
-      security:
-        - bearerAuth: []
+
+
+        address: "${cloud_run_uri}/solve"
+
+
+        path_translation: "CONSTANT_ADDRESS"
+
+
+        jwt_audience: "${cloud_run_uri}"
+
+
+        deadline: 300
+
+
       consumes:
+
+
         - "application/json"
+
+
       produces:
+
+
         - "application/json"
+
+
       parameters:
+
+
         - in: "body"
+
+
           name: "body"
+
+
           description: "The request body for the chat query."
+
+
           required: true
+
+
           schema:
+
+
             $ref: "#/definitions/ChatRequest"
+
+
       responses:
+
+
         '200':
+
+
           description: "Successful response from the RAG system."
+
+
           schema:
+
+
             $ref: "#/definitions/ChatResponse"
+
+
         '400':
+
+
           description: "Bad Request - The request body is malformed."
+
+
           schema:
+
+
             $ref: "#/definitions/ErrorResponse"
+
+
         '401':
+
+
           description: "Unauthorized - JWT is missing or invalid."
+
+
           schema:
+
+
             $ref: "#/definitions/ErrorResponse"
+
+
+
 
 definitions:
   ChatRequest:
@@ -97,9 +175,4 @@ definitions:
         description: "A human-readable error message."
         example: "The 'query' field is required."
 
-securityDefinitions:
-  bearerAuth:
-    type: "apiKey"
-    name: "Authorization"
-    in: "header"
-    description: "User authentication with JSON Web Token. The value should be 'Bearer {token}'."
+

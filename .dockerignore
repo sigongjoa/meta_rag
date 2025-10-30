@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Python
+venv/
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# Documentation
+docs/
+*.md
+
+# Local assets and data
+assets/
+poc_index.faiss
+report.html

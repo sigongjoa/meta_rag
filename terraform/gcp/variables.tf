@@ -41,7 +41,7 @@ variable "vector_index_contents_uri" {
 variable "vector_index_dimensions" {
   description = "The number of dimensions for the vectors."
   type        = number
-  default     = null
+  default     = 384
 }
 
 variable "vector_index_endpoint_display_name" {
@@ -59,7 +59,7 @@ variable "api_id" {
 variable "api_config_id" {
   description = "The ID of the API Gateway API Config."
   type        = string
-  default     = "meta-rag-api-config"
+  default     = "meta-rag-api-config-v3"
 }
 
 variable "gateway_id" {

@@ -5,7 +5,10 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # 3. Install dependencies
-# Copy requirements first to leverage Docker cache
+# First, install the CPU-only version of torch to avoid large GPU libraries
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# Copy requirements and install the rest of the dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
