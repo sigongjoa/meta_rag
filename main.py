@@ -99,10 +99,21 @@ async def lifespan(app: FastAPI):
 
 
 # --- FastAPI App Setup ---
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="Meta-RAG PoC API",
     version="0.5.0", # Version updated for lifespan refactor
     lifespan=lifespan
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:8001"],  # Allow your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
 
 class ProblemInput(BaseModel):
