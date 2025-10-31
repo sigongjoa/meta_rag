@@ -44,6 +44,30 @@ paths:
           description: "Unauthorized - JWT is missing or invalid."
           schema:
             $ref: "#/definitions/ErrorResponse"
+    options:
+      summary: "CORS preflight request"
+      operationId: "chatOptions"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        '200':
+          description: "Successful response for CORS preflight"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+              default: "http://127.0.0.1:8001"
+            Access-Control-Allow-Methods:
+              type: "string"
+              default: "POST, OPTIONS"
+            Access-Control-Allow-Headers:
+              type: "string"
+              default: "Content-Type, Authorization"
+      x-google-backend:
+        address: "${cloud_run_uri}"
+        path_translation: "CONSTANT_ADDRESS"
+        deadline: 30
 securityDefinitions:
   firebase:
     authorizationUrl: ""
