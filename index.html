@@ -23,99 +23,67 @@
                 <button id="solve-button">Solve</button>
             </div>
             <div class="output-area">
-                <h2>Generated Thought Process:</h2>
-                <div id="output"></div>
+                <h2>Retrieved Similar Problem:</h2>
+                <div id="retrieved-problem" class="output-box"></div>
+                <h2 style="margin-top: 20px;">Generated Thought Process:</h2>
+                <div id="output" class="output-box"></div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-
     <script>
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDaUWF5G4mOhHtZ41yPAFv5BE_H1eIF97A",
-            authDomain: "meta-476400.firebaseapp.com",
-            projectId: "meta-476400",
-            storageBucket: "meta-476400.firebasestorage.app",
-            messagingSenderId: "79927702353",
-            appId: "1:79927702353:web:6316995572e9846527d970"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        const auth = firebase.auth();
-        const provider = new firebase.auth.GoogleAuthProvider();
-
-        const authContainer = document.getElementById("auth-container");
-        const appContainer = document.getElementById("app-container");
-        const loginButton = document.getElementById("login-button");
-        const logoutButton = document.getElementById("logout-button");
-        const userEmailSpan = document.getElementById("user-email");
         const solveButton = document.getElementById("solve-button");
         const problemInput = document.getElementById("problem-input");
         const outputDiv = document.getElementById("output");
+        const retrievedProblemDiv = document.getElementById("retrieved-problem");
 
-        // Handle login state changes
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // User is signed in
-                authContainer.style.display = "none";
-                appContainer.style.display = "block";
-                userEmailSpan.textContent = user.email;
-            } else {
-                // User is signed out
-                authContainer.style.display = "block";
-                appContainer.style.display = "none";
-            }
-        });
+        // Mock user login for local development
+        document.getElementById("auth-container").style.display = "none";
+        document.getElementById("app-container").style.display = "block";
+        document.getElementById("user-email").textContent = "local-user@example.com";
 
-        // Login button click handler
-        loginButton.addEventListener("click", () => {
-            auth.signInWithPopup(provider);
-        });
-
-        // Logout button click handler
-        logoutButton.addEventListener("click", () => {
-            auth.signOut();
-        });
 
         // Solve button click handler
         solveButton.addEventListener("click", async () => {
             const problemText = problemInput.value;
-            const user = auth.currentUser;
 
-            if (!user) {
-                outputDiv.innerHTML = "Please login first.";
+            if (!problemText) {
+                outputDiv.innerHTML = "Please enter a problem.";
                 return;
             }
 
             outputDiv.innerHTML = "Solving...";
+            retrievedProblemDiv.innerHTML = "";
 
             try {
-                const idToken = await user.getIdToken();
-
-                const response = await fetch("https://meta-rag-gateway-10puw1u9.an.gateway.dev/chat", {
+                const response = await fetch("http://127.0.0.1:8000/solve", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${idToken}`
                     },
                     body: JSON.stringify({ problem_text: problemText })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.detail || response.statusText}`);
                 }
 
                 const data = await response.json();
-                outputDiv.innerHTML = data.generated_thought_process;
+
+                // Display retrieved similar problem
+                if (data.retrieved_similar_problem && data.retrieved_similar_problem.id !== -1) {
+                    retrievedProblemDiv.innerHTML = `<p><strong>ID:</strong> ${data.retrieved_similar_problem.id}</p><p><strong>Text:</strong> ${data.retrieved_similar_problem.text}</p>`;
+                } else {
+                    retrievedProblemDiv.innerHTML = "<p>No similar problem found.</p>";
+                }
+
+                // Display generated thought process
+                outputDiv.innerHTML = `<p>${data.generated_thought_process}</p>`;
 
             } catch (error) {
                 console.error("Error:", error);
+                retrievedProblemDiv.innerHTML = "";
                 outputDiv.innerHTML = `Error: ${error.message}`;
             }
         });
