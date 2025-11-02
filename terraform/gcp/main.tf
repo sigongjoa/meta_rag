@@ -55,6 +55,8 @@ resource "google_cloud_run_v2_service" "default" {
     time_sleep.wait_for_image
   ]
 
+
+
   template {
     containers {
       image = var.image_name
@@ -184,6 +186,8 @@ resource "google_cloud_run_v2_service_iam_member" "api_gateway_invoker" {
   # The member is the service account created for the API Config
   member   = "serviceAccount:${data.google_service_account.api_gateway_sa.email}"
 }
+
+
 
 # --- Cloud Run Service Account and Permissions ---
 

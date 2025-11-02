@@ -59,7 +59,7 @@ variable "api_id" {
 variable "api_config_id" {
   description = "The ID of the API Gateway API Config."
   type        = string
-  default     = "meta-rag-api-config-v3"
+  default     = "meta-rag-api-config-v6"
 }
 
 variable "gateway_id" {

@@ -26,6 +26,7 @@ paths:
             $ref: "#/definitions/ChatRequest"
       security:
         - firebase: []
+
       x-google-backend:
         address: "${cloud_run_uri}/solve"
         path_translation: "CONSTANT_ADDRESS"
@@ -76,6 +77,7 @@ securityDefinitions:
     x-google-issuer: "https://securetoken.google.com/meta-476400"
     x-google-jwks_uri: "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"
     x-google-audiences: "meta-476400"
+
 definitions:
   ChatRequest:
     type: object
