@@ -1,162 +1,82 @@
 [
   {
-    "id": "kb-001",
-    "source": "합성 데이터",
-    "problem_text": "이차방정식 $x^2 - 5x + 6 = 0$의 두 근을 구하시오.",
-    "parsed_text": "이차방정식 의 두 근을 구하시오.",
-    "formulas": ["x^2 - 5x + 6 = 0"],
-    "concepts": ["이차방정식", "인수분해"]
+    "id": "kb-001", "source": "합성-대수", "problem_text": "이차방정식 $x^2 - 7x + 12 = 0$의 해를 구하시오.",
+    "parsed_text": "이차방정식 의 해를 구하시오.", "formulas": ["x^2 - 7x + 12 = 0"], "concepts": ["이차방정식", "인수분해"]
   },
   {
-    "id": "kb-002",
-    "source": "합성 데이터",
-    "problem_text": "이차방정식 $x^2 - x - 2 = 0$을 인수분해하여 풀어라.",
-    "parsed_text": "이차방정식 을 인수분해하여 풀어라.",
-    "formulas": ["x^2 - x - 2 = 0"],
-    "concepts": ["이차방정식", "인수분해"]
+    "id": "kb-002", "source": "합성-대수", "problem_text": "$x^2+2x-8=0$을 만족하는 $x$를 모두 찾으시오.",
+    "parsed_text": "을 만족하는 를 모두 찾으시오.", "formulas": ["x^2+2x-8=0"], "concepts": ["이차방정식", "인수분해"]
   },
   {
-    "id": "kb-003",
-    "source": "합성 데이터",
-    "problem_text": "근의 공식을 이용하여 이차방정식 $2x^2 + 3x - 1 = 0$의 해를 구하시오.",
-    "parsed_text": "근의 공식을 이용하여 이차방정식 의 해를 구하시오.",
-    "formulas": ["2x^2 + 3x - 1 = 0"],
-    "concepts": ["이차방정식", "근의 공식"]
+    "id": "kb-003", "source": "합성-대수", "problem_text": "근의 공식을 사용하여 $3x^2-5x+1=0$을 푸시오.",
+    "parsed_text": "근의 공식을 사용하여 을 푸시오.", "formulas": ["3x^2-5x+1=0"], "concepts": ["이차방정식", "근의 공식"]
   },
   {
-    "id": "kb-004",
-    "source": "합성 데이터",
-    "problem_text": "이차방정식 $x^2 = 9$의 제곱근을 구하시오.",
-    "parsed_text": "이차방정식 의 제곱근을 구하시오.",
-    "formulas": ["x^2 = 9"],
-    "concepts": ["이차방정식", "제곱근"]
+    "id": "kb-004", "source": "합성-대수", "problem_text": "부등식 $2x + 5 > 15$의 해를 구하시오.",
+    "parsed_text": "부등식 의 해를 구하시오.", "formulas": ["2x + 5 > 15"], "concepts": ["일차부등식"]
   },
   {
-    "id": "kb-005",
-    "source": "합성 데이터",
-    "problem_text": "두 근이 2, 5이고 $x^2$의 계수가 1인 이차방정식은 무엇인가?",
-    "parsed_text": "두 근이 2, 5이고 의 계수가 1인 이차방정식은 무엇인가?",
-    "formulas": ["x^2"],
-    "concepts": ["이차방정식", "근과 계수의 관계"]
+    "id": "kb-005", "source": "합성-대수", "problem_text": "연립방정식 $x+y=5$, $x-y=1$의 해는?",
+    "parsed_text": "연립방정식 , 의 해는?", "formulas": ["x+y=5", "x-y=1"], "concepts": ["연립방정식"]
   },
   {
-    "id": "kb-006",
-    "source": "합성 데이터",
-    "problem_text": "함수 $f(x) = x^3$의 $x=2$에서의 미분계수를 구하시오.",
-    "parsed_text": "함수 의 에서의 미분계수를 구하시오.",
-    "formulas": ["f(x) = x^3", "x=2"],
-    "concepts": ["미분계수", "다항함수 미분"]
+    "id": "kb-006", "source": "합성-대수", "problem_text": "$|x-3| < 5$를 만족하는 $x$의 범위를 구하시오.",
+    "parsed_text": "를 만족하는 의 범위를 구하시오.", "formulas": ["|x-3| < 5"], "concepts": ["절대값 부등식"]
   },
   {
-    "id": "kb-007",
-    "source": "합성 데이터",
-    "problem_text": "함수 $f(x) = 3x^2 - 2x + 1$의 도함수 $f'(x)$를 구하시오.",
-    "parsed_text": "함수 의 도함수 를 구하시오.",
-    "formulas": ["f(x) = 3x^2 - 2x + 1", "f'(x)"],
-    "concepts": ["도함수", "다항함수 미분"]
+    "id": "kb-007", "source": "합성-대수", "problem_text": "이차부등식 $x^2-4x+3 > 0$의 해를 구하시오.",
+    "parsed_text": "이차부등식 의 해를 구하시오.", "formulas": ["x^2-4x+3 > 0"], "concepts": ["이차부등식"]
   },
   {
-    "id": "kb-008",
-    "source": "합성 데이터",
-    "problem_text": "미분계수의 정의 $lim_{h \to 0} \frac{f(a+h) - f(a)}{h}$를 이용하여 $f(x)=x^2$의 도함수를 구하시오.",
-    "parsed_text": "미분계수의 정의 를 이용하여 의 도함수를 구하시오.",
-    "formulas": ["lim_{h \to 0} \frac{f(a+h) - f(a)}{h}", "f(x)=x^2"],
-    "concepts": ["미분계수", "도함수의 정의"]
+    "id": "kb-008", "source": "합성-대수", "problem_text": "$x^3 - 8 = 0$의 모든 근을 복소수 범위에서 구하시오.",
+    "parsed_text": "의 모든 근을 복소수 범위에서 구하시오.", "formulas": ["x^3 - 8 = 0"], "concepts": ["삼차방정식", "복소수"]
   },
   {
-    "id": "kb-009",
-    "source": "합성 데이터",
-    "problem_text": "곡선 $y = x^2 + 1$ 위의 점 $(1, 2)$에서의 접선의 방정식을 구하시오.",
-    "parsed_text": "곡선 위의 점 에서의 접선의 방정식을 구하시오.",
-    "formulas": ["y = x^2 + 1", "(1, 2)"],
-    "concepts": ["접선의 방정식", "미분계수"]
+    "id": "kb-009", "source": "합성-대수", "problem_text": "다항식 $P(x) = x^3+2x-5$를 $x-1$로 나눈 나머지는?",
+    "parsed_text": "다항식 를 로 나눈 나머지는?", "formulas": ["P(x) = x^3+2x-5", "x-1"], "concepts": ["나머지 정리"]
   },
   {
-    "id": "kb-010",
-    "source": "합성 데이터",
-    "problem_text": "함수 $f(x) = (x^2+1)(x-1)$를 미분하시오.",
-    "parsed_text": "함수 를 미분하시오.",
-    "formulas": ["f(x) = (x^2+1)(x-1)"],
-    "concepts": ["곱의 미분법", "다항함수 미분"]
+    "id": "kb-010", "source": "합성-대수", "problem_text": "$log_2(x-1)=3$일 때 $x$의 값은?",
+    "parsed_text": "일 때 의 값은?", "formulas": ["log_2(x-1)=3"], "concepts": ["로그방정식"]
   },
   {
-    "id": "kb-011",
-    "source": "합성 데이터",
-    "problem_text": "등차수열에서 첫째항이 3이고 공차가 2일 때, 제10항을 구하시오.",
-    "parsed_text": "등차수열에서 첫째항이 3이고 공차가 2일 때, 제10항을 구하시오.",
-    "formulas": [],
-    "concepts": ["등차수열", "일반항"]
+    "id": "kb-011", "source": "합성-미적분", "problem_text": "함수 $f(x) = x^3+2x^2$의 도함수를 구하시오.",
+    "parsed_text": "함수 의 도함수를 구하시오.", "formulas": ["f(x) = x^3+2x^2"], "concepts": ["다항함수 미분", "도함수"]
   },
   {
-    "id": "kb-012",
-    "source": "합성 데이터",
-    "problem_text": "등비수열 ${a_n}$에서 $a_1 = 2$, $a_4 = 54$일 때, 공비 $r$을 구하시오.",
-    "parsed_text": "등비수열 에서 , 일 때, 공비 를 구하시오.",
-    "formulas": ["{a_n}", "a_1 = 2", "a_4 = 54", "r"],
-    "concepts": ["등비수열", "일반항"]
+    "id": "kb-012", "source": "합성-미적분", "problem_text": "$f(x) = (x^2+1)(2x-1)$를 미분하시오.",
+    "parsed_text": "를 미분하시오.", "formulas": ["f(x) = (x^2+1)(2x-1)"], "concepts": ["곱의 미분법"]
   },
   {
-    "id": "kb-013",
-    "source": "합성 데이터",
-    "problem_text": "수열 $1, 4, 7, 10, ...$의 일반항 $a_n$을 구하시오.",
-    "parsed_text": "수열 의 일반항 을 구하시오.",
-    "formulas": ["a_n"],
-    "concepts": ["등차수열", "일반항"]
+    "id": "kb-013", "source": "합성-미적분", "problem_text": "$lim_{x \to 2} (x^2+3x)$의 극한값은?",
+    "parsed_text": "의 극한값은?", "formulas": ["lim_{x \to 2} (x^2+3x)"], "concepts": ["함수의 극한"]
   },
   {
-    "id": "kb-014",
-    "source": "합성 데이터",
-    "problem_text": "첫째항부터 제10항까지의 합이 100이고, 제20항까지의 합이 300인 등차수열의 첫째항과 공차를 구하시오.",
-    "parsed_text": "첫째항부터 제10항까지의 합이 100이고, 제20항까지의 합이 300인 등차수열의 첫째항과 공차를 구하시오.",
-    "formulas": [],
-    "concepts": ["등차수열의 합", "연립방정식"]
+    "id": "kb-014", "source": "합성-미적분", "problem_text": "$lim_{x \to \infty} \frac{2x^2-1}{x^2+x}$의 값은?",
+    "parsed_text": "의 값은?", "formulas": ["lim_{x \to \infty} \frac{2x^2-1}{x^2+x}"], "concepts": ["함수의 극한", "무한대 극한"]
   },
   {
-    "id": "kb-015",
-    "source": "합성 데이터",
-    "problem_text": "공비가 0.5이고 첫째항이 10인 무한등비급수의 합을 구하시오.",
-    "parsed_text": "공비가 0.5이고 첫째항이 10인 무한등비급수의 합을 구하시오.",
-    "formulas": [],
-    "concepts": ["무한등비급수", "수렴"]
+    "id": "kb-015", "source": "합성-미적분", "problem_text": "$\int (3x^2+2x) dx$ 부정적분을 구하시오.",
+    "parsed_text": "부정적분을 구하시오.", "formulas": ["\int (3x^2+2x) dx"], "concepts": ["부정적분", "다항함수 적분"]
   },
   {
-    "id": "kb-016",
-    "source": "합성 데이터",
-    "problem_text": "밑변의 길이가 10cm, 높이가 5cm인 삼각형의 넓이를 구하시오.",
-    "parsed_text": "밑변의 길이가 10cm, 높이가 5cm인 삼각형의 넓이를 구하시오.",
-    "formulas": [],
-    "concepts": ["삼각형 넓이", "기하"]
+    "id": "kb-016", "source": "합성-미적분", "problem_text": "$\int_0^1 (x^2+1) dx$ 정적분의 값을 구하시오.",
+    "parsed_text": "정적분의 값을 구하시오.", "formulas": ["\int_0^1 (x^2+1) dx"], "concepts": ["정적분"]
   },
   {
-    "id": "kb-017",
-    "source": "합성 데이터",
-    "problem_text": "직각삼각형에서 두 변의 길이가 각각 3, 4일 때, 빗변의 길이를 피타고라스 정리를 이용하여 구하시오.",
-    "parsed_text": "직각삼각형에서 두 변의 길이가 각각 3, 4일 때, 빗변의 길이를 피타고라스 정리를 이용하여 구하시오.",
-    "formulas": [],
-    "concepts": ["피타고라스 정리", "직각삼각형"]
+    "id": "kb-017", "source": "합성-미적분", "problem_text": "함수 $f(x)=e^x$의 도함수는?",
+    "parsed_text": "함수 의 도함수는?", "formulas": ["f(x)=e^x"], "concepts": ["지수함수 미분"]
   },
   {
-    "id": "kb-018",
-    "source": "합성 데이터",
-    "problem_text": "반지름의 길이가 5인 원의 둘레와 넓이를 구하시오.",
-    "parsed_text": "반지름의 길이가 5인 원의 둘레와 넓이를 구하시오.",
-    "formulas": [],
-    "concepts": ["원", "원의 둘레", "원의 넓이"]
+    "id": "kb-018", "source": "합성-미적분", "problem_text": "$f(x)=sin(x)$를 미분하면?",
+    "parsed_text": "를 미분하면?", "formulas": ["f(x)=sin(x)"], "concepts": ["삼각함수 미분"]
   },
   {
-    "id": "kb-019",
-    "source": "합성 데이터",
-    "problem_text": "한 변의 길이가 $a$인 정사각형의 대각선의 길이는?",
-    "parsed_text": "한 변의 길이가 인 정사각형의 대각선의 길이는?",
-    "formulas": ["a"],
-    "concepts": ["정사각형", "피타고라스 정리", "대각선"]
+    "id": "kb-019", "source": "합성-미적분", "problem_text": "$y=ln(x)$의 $x=1$에서의 미분계수는?",
+    "parsed_text": "의 에서의 미분계수는?", "formulas": ["y=ln(x)", "x=1"], "concepts": ["로그함수 미분"]
   },
   {
-    "id": "kb-020",
-    "source": "합성 데이터",
-    "problem_text": "두 점 A(1, 2)와 B(4, 6) 사이의 거리를 구하시오.",
-    "parsed_text": "두 점 A(1, 2)와 B(4, 6) 사이의 거리를 구하시오.",
-    "formulas": [],
-    "concepts": ["좌표평면", "두 점 사이의 거리"]
+    "id": "kb-020", "source": "합성-미적분", "problem_text": "부분적분법을 이용하여 $\int x sin(x) dx$를 구하시오.",
+    "parsed_text": "부분적분법을 이용하여 를 구하시오.", "formulas": ["\int x sin(x) dx"], "concepts": ["부분적분법"]
   }
 ]

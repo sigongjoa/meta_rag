@@ -5,21 +5,26 @@ import faiss
 import os
 from sentence_transformers import SentenceTransformer
 from problem_parser import ProblemParser
+from gcn_model import SimpleGCN
 from main import get_dual_embedding # Assuming get_dual_embedding is accessible
 
-def load_data(knowledge_base_path, golden_queries_path):
-    """Loads the knowledge base and golden queries from JSON files."""
-    print(f"Loading knowledge base from {knowledge_base_path}...")
-    with open(knowledge_base_path, 'r', encoding='utf-8') as f:
-        knowledge_base = json.load(f)
-    
+def load_data(knowledge_base_dir, golden_queries_path):
+    """Loads the knowledge base from a directory of JSON files and golden queries from a JSON file."""
+    print(f"Loading knowledge base from {knowledge_base_dir}...")
+    knowledge_base = []
+    for filename in os.listdir(knowledge_base_dir):
+        if filename.endswith('.json'):
+            file_path = os.path.join(knowledge_base_dir, filename)
+            with open(file_path, 'r', encoding='utf-8') as f:
+                knowledge_base.append(json.load(f))
+
     print(f"Loading golden queries from {golden_queries_path}...")
     with open(golden_queries_path, 'r', encoding='utf-8') as f:
         golden_queries = json.load(f)
         
     return knowledge_base, golden_queries
 
-def build_index(knowledge_base, embedding_model, parser):
+def build_index(knowledge_base, embedding_model, parser, gcn_model):
     """Builds a FAISS index from the knowledge base."""
     print("Building FAISS index...")
     
@@ -28,10 +33,7 @@ def build_index(knowledge_base, embedding_model, parser):
     ids = [item['id'] for item in knowledge_base]
     
     for item in knowledge_base:
-        # This assumes the embedding function takes the full item, or just the text.
-        # We might need to adapt this based on the model.
-        # For now, let's assume it uses the same logic as the PoC.
-        embedding = get_dual_embedding(item['problem_text'], parser, embedding_model)
+        embedding = get_dual_embedding(item, parser, embedding_model, gcn_model)
         embeddings.append(embedding)
         
     embeddings = np.array(embeddings).astype('float32')
@@ -52,7 +54,7 @@ def build_index(knowledge_base, embedding_model, parser):
     print(f"Index built successfully with {index.ntotal} vectors.")
     return index, id_map
 
-def run_evaluation(index, id_map, golden_queries, embedding_model, parser, k=10):
+def run_evaluation(index, id_map, golden_queries, embedding_model, parser, gcn_model, k=10):
     """Runs evaluation and calculates P'@k."""
     print(f"Running evaluation for {len(golden_queries)} queries...")
     
@@ -62,8 +64,15 @@ def run_evaluation(index, id_map, golden_queries, embedding_model, parser, k=10)
         query_text = query['query_text']
         ground_truth_ids = set(query['ground_truth_ids'])
         
+        # Construct a problem dict for the query to use the new get_dual_embedding
+        query_problem = parser.parse_problem(query_text)
+        query_problem['id'] = query['query_id']
+        query_problem['problem_text'] = query_text
+        # Queries don't have pre-defined concepts, so we pass an empty list
+        query_problem['concepts'] = [] 
+
         # Get embedding for the query
-        query_embedding = get_dual_embedding(query_text, parser, embedding_model)
+        query_embedding = get_dual_embedding(query_problem, parser, embedding_model, gcn_model)
         query_embedding = np.array([query_embedding]).astype('float32')
         
         # Search the index
@@ -88,7 +97,7 @@ def main():
     
     # --- Configuration ---
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-    KNOWLEDGE_BASE_PATH = os.path.join(SCRIPT_DIR, 'knowledge_base.json')
+    KNOWLEDGE_BASE_PATH = os.path.join(SCRIPT_DIR, 'knowledge_base')
     GOLDEN_QUERIES_PATH = os.path.join(SCRIPT_DIR, 'golden_queries.json')
     K_FOR_METRICS = 10
     
@@ -96,6 +105,7 @@ def main():
     print("Loading models...")
     embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
     parser = ProblemParser()
+    gcn_model = SimpleGCN(input_dim=384, hidden_dim=128, output_dim=64)
     
     # --- Load Data ---
     # Note: These files need to be created manually first.
@@ -108,10 +118,10 @@ def main():
         return
 
     # --- Build Index ---
-    index, id_map = build_index(knowledge_base, embedding_model, parser)
+    index, id_map = build_index(knowledge_base, embedding_model, parser, gcn_model)
     
     # --- Run Evaluation ---
-    mean_p_at_k = run_evaluation(index, id_map, golden_queries, embedding_model, parser, k=K_FOR_METRICS)
+    mean_p_at_k = run_evaluation(index, id_map, golden_queries, embedding_model, parser, gcn_model, k=K_FOR_METRICS)
     
     # --- Print Results ---
     print("\n" + "="*30)

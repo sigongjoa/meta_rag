@@ -1,0 +1,13 @@
+{
+  "id": "kb-019",
+  "source": "합성-미적분",
+  "problem_text": "$y=\\ln(x)$의 $x=1$에서의 미분계수는?",
+  "parsed_text": "의 에서의 미분계수는?",
+  "formulas": [
+    "y=\\ln(x)",
+    "x=1"
+  ],
+  "concepts": [
+    "로그함수 미분"
+  ]
+}

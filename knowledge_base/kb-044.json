@@ -1,0 +1,14 @@
+{
+  "id": "kb-044",
+  "source": "합성-논리",
+  "problem_text": "드모르간의 법칙을 서술하시오.",
+  "parsed_text": "드모르간의 법칙을 서술하시오.",
+  "formulas": [
+    "~ (p and q) <=> (~p or ~q)",
+    "~ (p or q) <=> (~p and ~q)"
+  ],
+  "concepts": [
+    "드모르간의 법칙",
+    "논리 연산"
+  ]
+}

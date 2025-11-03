@@ -1,0 +1,13 @@
+{
+  "id": "kb-046",
+  "source": "합성-수학퍼즐",
+  "problem_text": "하노이의 탑 문제를 해결하는 재귀적 방법을 설명하시오.",
+  "parsed_text": "하노이의 탑 문제를 해결하는 재귀적 방법을 설명하시오.",
+  "formulas": [
+    "move(n, start, end, via) = move(n-1, start, via, end) + move(1, start, end) + move(n-1, via, end, start)"
+  ],
+  "concepts": [
+    "하노이의 탑",
+    "재귀"
+  ]
+}

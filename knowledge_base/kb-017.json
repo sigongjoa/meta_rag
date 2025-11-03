@@ -1,0 +1,12 @@
+{
+  "id": "kb-017",
+  "source": "합성-미적분",
+  "problem_text": "함수 $f(x)=e^x$의 도함수는?",
+  "parsed_text": "함수 의 도함수는?",
+  "formulas": [
+    "f(x)=e^x"
+  ],
+  "concepts": [
+    "지수함수 미분"
+  ]
+}

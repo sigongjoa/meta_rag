@@ -1,0 +1,12 @@
+{
+  "id": "kb-018",
+  "source": "합성-미적분",
+  "problem_text": "$f(x)=\\sin(x)$를 미분하면?",
+  "parsed_text": "를 미분하면?",
+  "formulas": [
+    "f(x)=\\sin(x)"
+  ],
+  "concepts": [
+    "삼각함수 미분"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "kb-040",
+  "source": "합성-통계",
+  "problem_text": "데이터셋 [1, 2, 3, 4, 5]의 분산을 구하시오.",
+  "parsed_text": "데이터셋 [1, 2, 3, 4, 5]의 분산을 구하시오.",
+  "formulas": [
+    "variance = sum((x_i - mean)^2) / n"
+  ],
+  "concepts": [
+    "분산"
+  ]
+}

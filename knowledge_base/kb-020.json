@@ -1,0 +1,12 @@
+{
+  "id": "kb-020",
+  "source": "합성-미적분",
+  "problem_text": "부분적분법을 이용하여 $\\int x \\sin(x) dx$를 구하시오.",
+  "parsed_text": "부분적분법을 이용하여 를 구하시오.",
+  "formulas": [
+    "\\int x \\sin(x) dx"
+  ],
+  "concepts": [
+    "부분적분법"
+  ]
+}

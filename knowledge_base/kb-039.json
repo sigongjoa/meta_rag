@@ -1,0 +1,12 @@
+{
+  "id": "kb-039",
+  "source": "합성-통계",
+  "problem_text": "데이터셋 [1, 2, 3, 4, 5]의 범위를 구하시오.",
+  "parsed_text": "데이터셋 [1, 2, 3, 4, 5]의 범위를 구하시오.",
+  "formulas": [
+    "range = max(dataset) - min(dataset)"
+  ],
+  "concepts": [
+    "범위"
+  ]
+}

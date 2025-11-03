@@ -1,0 +1,13 @@
+{
+  "id": "kb-005",
+  "source": "합성-대수",
+  "problem_text": "연립방정식 $x+y=5$, $x-y=1$의 해는?",
+  "parsed_text": "연립방정식 , 의 해는?",
+  "formulas": [
+    "x+y=5",
+    "x-y=1"
+  ],
+  "concepts": [
+    "연립방정식"
+  ]
+}

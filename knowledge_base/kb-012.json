@@ -1,0 +1,12 @@
+{
+  "id": "kb-012",
+  "source": "합성-미적분",
+  "problem_text": "$f(x) = (x^2+1)(2x-1)$를 미분하시오.",
+  "parsed_text": "를 미분하시오.",
+  "formulas": [
+    "f(x) = (x^2+1)(2x-1)"
+  ],
+  "concepts": [
+    "곱의 미분법"
+  ]
+}

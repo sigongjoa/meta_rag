@@ -1,0 +1,12 @@
+{
+  "id": "kb-037",
+  "source": "합성-통계",
+  "problem_text": "데이터셋 [1, 2, 2, 3, 4, 4, 4, 5]의 최빈값을 구하시오.",
+  "parsed_text": "데이터셋 [1, 2, 2, 3, 4, 4, 4, 5]의 최빈값을 구하시오.",
+  "formulas": [
+    "mode = value with highest frequency"
+  ],
+  "concepts": [
+    "최빈값"
+  ]
+}

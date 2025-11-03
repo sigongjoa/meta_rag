@@ -1,0 +1,13 @@
+{
+  "id": "kb-015",
+  "source": "합성-미적분",
+  "problem_text": "$\\int (3x^2+2x) dx$ 부정적분을 구하시오.",
+  "parsed_text": "부정적분을 구하시오.",
+  "formulas": [
+    "\\int (3x^2+2x) dx"
+  ],
+  "concepts": [
+    "부정적분",
+    "다항함수 적분"
+  ]
+}

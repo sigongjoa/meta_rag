@@ -1,0 +1,12 @@
+{
+  "id": "kb-013",
+  "source": "합성-미적분",
+  "problem_text": "$lim_{x \\to 2} (x^2+3x)$의 극한값은?",
+  "parsed_text": "의 극한값은?",
+  "formulas": [
+    "lim_{x \\to 2} (x^2+3x)"
+  ],
+  "concepts": [
+    "함수의 극한"
+  ]
+}

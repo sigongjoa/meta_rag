@@ -1,0 +1,12 @@
+{
+  "id": "kb-010",
+  "source": "합성-대수",
+  "problem_text": "$log_2(x-1)=3$일 때 $x$의 값은?",
+  "parsed_text": "일 때 의 값은?",
+  "formulas": [
+    "log_2(x-1)=3"
+  ],
+  "concepts": [
+    "로그방정식"
+  ]
+}

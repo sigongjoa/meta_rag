@@ -2,8 +2,10 @@ import os
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
+from typing import Dict, Any
 
 from problem_parser import ProblemParser
+from gcn_model import SimpleGCN
 from sentence_transformers import SentenceTransformer
 import numpy as np
 from langchain_core.prompts import ChatPromptTemplate
@@ -21,21 +23,32 @@ sample_problems = {
     4: "What are the roots of the quadratic equation $x^2 - 5x + 6 = 0$?",
 }
 
+from typing import Dict, Any
+
 # --- Helper function for Dual Embedding ---
-def get_dual_embedding(problem_text: str, parser: ProblemParser, model: SentenceTransformer):
-    parsed_problem = parser.parse_problem(problem_text)
-    text_embedding = model.encode([parsed_problem["text"]])[0]
+def get_dual_embedding(problem: Dict[str, Any], parser: ProblemParser, text_embedding_model: SentenceTransformer, gcn_model: SimpleGCN):
+    # 1. Get text embedding
+    parsed_text = problem.get('parsed_text', problem.get('text', ''))
+    text_embedding = text_embedding_model.encode([parsed_text])[0]
+
+    # 2. Create graph and get graph embedding
+    G = parser.create_graph_representation(problem)
     
-    formula_embeddings = []
-    if parsed_problem["formulas"]:
-        formula_embeddings = model.encode(parsed_problem["formulas"])
-    
-    if len(formula_embeddings) > 0:
-        avg_formula_embedding = np.mean(formula_embeddings, axis=0)
-        combined_embedding = np.mean([text_embedding, avg_formula_embedding], axis=0)
-    else:
-        combined_embedding = text_embedding
+    if G.number_of_nodes() > 1:
+        # 3. Generate node features
+        node_features = {}
+        for node in G.nodes():
+            node_features[node] = text_embedding_model.encode([node])[0]
         
+        # 4. Get graph embedding
+        graph_embedding = gcn_model.forward(G, node_features)
+    else:
+        # Handle cases with no graph structure (e.g., query with no formulas/concepts)
+        graph_embedding = np.zeros(gcn_model.W1.shape[1]) # Zero vector of output size
+
+    # 5. Combine embeddings
+    combined_embedding = np.concatenate([text_embedding, graph_embedding])
+    
     return combined_embedding
 
 # --- Model and Client Loading Logic (within lifespan) ---
@@ -45,6 +58,7 @@ async def lifespan(app: FastAPI):
     print("Loading embedding and parsing models...")
     app.state.parser = ProblemParser()
     app.state.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+    app.state.gcn_model = SimpleGCN(input_dim=384, hidden_dim=128, output_dim=64)
     print("Embedding and parsing models loaded.")
 
     print("Loading local LLM...")
@@ -129,6 +143,7 @@ async def solve_problem(input: ProblemInput, request: Request):
     # Access models and clients from the application state
     parser = request.app.state.parser
     embedding_model = request.app.state.embedding_model
+    gcn_model = request.app.state.gcn_model
     index_endpoint = request.app.state.index_endpoint
     chain = request.app.state.chain
 
@@ -136,7 +151,12 @@ async def solve_problem(input: ProblemInput, request: Request):
         return {"error": "Vertex AI client is not initialized. Check server configuration."}
 
     # 1. Parse & 2. Embed (Dual Embedding)
-    input_embedding = get_dual_embedding(input.problem_text, parser, embedding_model)
+    problem_dict = parser.parse_problem(input.problem_text)
+    problem_dict['id'] = 'query' # Assign a temporary ID
+    problem_dict['problem_text'] = input.problem_text
+    problem_dict['concepts'] = [] # No concepts for raw query
+
+    input_embedding = get_dual_embedding(problem_dict, parser, embedding_model, gcn_model)
     
     # 3. Retrieve from Vertex AI
     k = 1

@@ -1,0 +1,12 @@
+{
+  "id": "kb-038",
+  "source": "합성-통계",
+  "problem_text": "데이터셋 [1, 2, 3, 4, 5]의 중앙값을 구하시오.",
+  "parsed_text": "데이터셋 [1, 2, 3, 4, 5]의 중앙값을 구하시오.",
+  "formulas": [
+    "median = middle value of sorted dataset"
+  ],
+  "concepts": [
+    "중앙값"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "kb-014",
+  "source": "합성-미적분",
+  "problem_text": "$lim_{x \\to \\infty} \\frac{2x^2-1}{x^2+x}$의 값은?",
+  "parsed_text": "의 값은?",
+  "formulas": [
+    "lim_{x \\to \\infty} \\frac{2x^2-1}{x^2+x}"
+  ],
+  "concepts": [
+    "함수의 극한",
+    "무한대 극한"
+  ]
+}
