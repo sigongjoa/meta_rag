@@ -1,0 +1,46 @@
+[
+  {
+    "query_id": "gq-001",
+    "query_text": "이차방정식의 근을 구하는 문제를 찾아줘.",
+    "ground_truth_ids": [
+      "kb-001",
+      "kb-002",
+      "kb-003",
+      "kb-004",
+      "kb-005"
+    ]
+  },
+  {
+    "query_id": "gq-002",
+    "query_text": "다항함수의 미분과 관련된 문제를 보여줘.",
+    "ground_truth_ids": [
+      "kb-006",
+      "kb-007",
+      "kb-008",
+      "kb-009",
+      "kb-010"
+    ]
+  },
+  {
+    "query_id": "gq-003",
+    "query_text": "등차수열이나 등비수열 문제가 있나요?",
+    "ground_truth_ids": [
+      "kb-011",
+      "kb-012",
+      "kb-013",
+      "kb-014",
+      "kb-015"
+    ]
+  },
+  {
+    "query_id": "gq-004",
+    "query_text": "도형의 넓이나 길이를 구하는 기하 문제를 검색해줘.",
+    "ground_truth_ids": [
+      "kb-016",
+      "kb-017",
+      "kb-018",
+      "kb-019",
+      "kb-020"
+    ]
+  }
+]
