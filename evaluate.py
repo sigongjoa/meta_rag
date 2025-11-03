@@ -223,7 +223,7 @@ def main():
     # Determine input_dim for GCN from the number of unique concepts
     # This requires loading concept_to_idx first to get the number of concepts
     input_dim = embedding_model.get_sentence_embedding_dimension() # Assuming SentenceTransformer output size is 384
-    gcn_model = SimpleGCN(input_dim=input_dim, hidden_dim=128, output_dim=64)
+    gcn_model = SimpleGCN(input_dim=input_dim, hidden_dim=128, output_dim=embedding_model.get_sentence_embedding_dimension())
     gcn_model.load_state_dict(torch.load(MODEL_SAVE_PATH))
     gcn_model.eval() # Set to evaluation mode
 

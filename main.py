@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI):
     
     # Load trained GCN model
     input_dim = app.state.embedding_model.get_sentence_embedding_dimension() # 384
-    app.state.gcn_model = SimpleGCN(input_dim=input_dim, hidden_dim=128, output_dim=64)
+    app.state.gcn_model = SimpleGCN(input_dim=input_dim, hidden_dim=128, output_dim=app.state.embedding_model.get_sentence_embedding_dimension())
     gcn_model_path = os.path.join(os.path.dirname(__file__), 'gcn_model.pth')
     app.state.gcn_model.load_state_dict(torch.load(gcn_model_path))
     app.state.gcn_model.eval() # Set to evaluation mode
@@ -41,6 +41,17 @@ async def lifespan(app: FastAPI):
     concept_to_idx_path = os.path.join(os.path.dirname(__file__), 'concept_to_idx.json')
     with open(concept_to_idx_path, 'r', encoding='utf-8') as f:
         app.state.concept_to_idx = json.load(f)
+
+    # --- Load Knowledge Base and Build FAISS Index ---
+    print("Loading knowledge base and building FAISS index...")
+    KNOWLEDGE_BASE_DIR = os.path.join(os.path.dirname(__file__), 'knowledge_base')
+    knowledge_base = []
+    for filename in os.listdir(KNOWLEDGE_BASE_DIR):
+        if filename.endswith('.json'):
+            file_path = os.path.join(KNOWLEDGE_BASE_DIR, filename)
+            with open(file_path, 'r', encoding='utf-8') as f:
+                knowledge_base.append(json.load(f))
+    app.state.knowledge_base = knowledge_base
 
     # Pre-calculate GCN concept embeddings
     num_concepts = len(app.state.concept_to_idx)
@@ -70,17 +81,6 @@ async def lifespan(app: FastAPI):
         app.state.gcn_concept_embeddings = app.state.gcn_model(concept_features, adj_normalized)
 
     print("Embedding and parsing models loaded.")
-
-    # --- Load Knowledge Base and Build FAISS Index ---
-    print("Loading knowledge base and building FAISS index...")
-    KNOWLEDGE_BASE_DIR = os.path.join(os.path.dirname(__file__), 'knowledge_base')
-    knowledge_base = []
-    for filename in os.listdir(KNOWLEDGE_BASE_DIR):
-        if filename.endswith('.json'):
-            file_path = os.path.join(KNOWLEDGE_BASE_DIR, filename)
-            with open(file_path, 'r', encoding='utf-8') as f:
-                knowledge_base.append(json.load(f))
-    app.state.knowledge_base = knowledge_base
 
     # Build FAISS index
     embeddings = []

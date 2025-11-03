@@ -2,10 +2,10 @@
     "summary": {
         "k": 10,
         "num_queries": 4,
-        "mean_precision_at_k": 0.025,
-        "mean_recall_at_k": 0.08333333333333333,
-        "mrr": 0.025,
-        "map": 0.008333333333333333
+        "mean_precision_at_k": 0.125,
+        "mean_recall_at_k": 0.41666666666666663,
+        "mrr": 0.3,
+        "map": 0.22916666666666666
     },
     "results": [
         {
@@ -17,46 +17,46 @@
                 "kb-003"
             ],
             "retrieved_ids": [
+                "kb-007",
+                "kb-004",
+                "kb-047",
+                "kb-025",
+                "kb-001",
+                "kb-024",
+                "kb-023",
+                "kb-003",
                 "kb-044",
-                "kb-008",
-                "kb-035",
-                "kb-039",
-                "kb-038",
-                "kb-037",
-                "kb-027",
-                "kb-010",
-                "kb-043",
-                "kb-007"
+                "kb-002"
             ],
-            "precision_at_k": 0.0,
-            "recall_at_k": 0.0,
-            "mrr": 0,
-            "average_precision": 0.0
+            "precision_at_k": 0.3,
+            "recall_at_k": 1.0,
+            "mrr": 0.2,
+            "average_precision": 0.25
         },
         {
             "query_id": "gq-002",
             "query_text": "부등식 문제, 특히 절대값이 들어간 부등식은 어떻게 풀어?",
             "ground_truth_ids": [
-                "kb-004",
+                "kb-007",
                 "kb-006",
-                "kb-007"
+                "kb-004"
             ],
             "retrieved_ids": [
-                "kb-044",
-                "kb-008",
-                "kb-035",
-                "kb-039",
-                "kb-038",
-                "kb-037",
-                "kb-027",
-                "kb-010",
-                "kb-043",
-                "kb-007"
+                "kb-004",
+                "kb-007",
+                "kb-024",
+                "kb-025",
+                "kb-047",
+                "kb-001",
+                "kb-019",
+                "kb-023",
+                "kb-009",
+                "kb-034"
             ],
-            "precision_at_k": 0.1,
-            "recall_at_k": 0.3333333333333333,
-            "mrr": 0.1,
-            "average_precision": 0.03333333333333333
+            "precision_at_k": 0.2,
+            "recall_at_k": 0.6666666666666666,
+            "mrr": 1.0,
+            "average_precision": 0.6666666666666666
         },
         {
             "query_id": "gq-003",
@@ -67,16 +67,16 @@
                 "kb-012"
             ],
             "retrieved_ids": [
-                "kb-044",
-                "kb-008",
-                "kb-035",
-                "kb-039",
-                "kb-038",
-                "kb-037",
-                "kb-027",
-                "kb-010",
-                "kb-043",
-                "kb-007"
+                "kb-004",
+                "kb-047",
+                "kb-007",
+                "kb-025",
+                "kb-001",
+                "kb-023",
+                "kb-024",
+                "kb-009",
+                "kb-002",
+                "kb-044"
             ],
             "precision_at_k": 0.0,
             "recall_at_k": 0.0,
@@ -87,21 +87,21 @@
             "query_id": "gq-004",
             "query_text": "적분 문제 풀어보고 싶어. 정적분이랑 부정적분.",
             "ground_truth_ids": [
-                "kb-016",
                 "kb-015",
-                "kb-020"
+                "kb-020",
+                "kb-016"
             ],
             "retrieved_ids": [
+                "kb-047",
+                "kb-007",
+                "kb-004",
+                "kb-001",
+                "kb-025",
+                "kb-023",
+                "kb-003",
+                "kb-024",
                 "kb-044",
-                "kb-008",
-                "kb-035",
-                "kb-039",
-                "kb-038",
-                "kb-037",
-                "kb-027",
-                "kb-010",
-                "kb-043",
-                "kb-007"
+                "kb-034"
             ],
             "precision_at_k": 0.0,
             "recall_at_k": 0.0,

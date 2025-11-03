@@ -112,7 +112,7 @@ def main():
     # --- Initialize and Train Model ---
     input_dim = embedding_model.get_sentence_embedding_dimension() # GCN input is now sentence embedding dimension
     hidden_dim = 128 
-    output_dim = 64
+    output_dim = embedding_model.get_sentence_embedding_dimension() # Match text embedding dimension
     gcn_model = SimpleGCN(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim)
     
     train(gcn_model, adj, features, pos_links, neg_links)
