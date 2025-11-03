@@ -45,6 +45,12 @@ class ProblemParser:
             "metadata": metadata
         }
 
+    def get_all_concepts(self, knowledge_base_items: list[Dict[str, Any]]) -> set[str]:
+        all_concepts = set()
+        for item in knowledge_base_items:
+            all_concepts.update(item.get('concepts', []))
+        return all_concepts
+
     def create_graph_representation(self, problem: Dict[str, Any]) -> nx.DiGraph:
         G = nx.DiGraph()
         problem_id = problem.get('id', 'problem')

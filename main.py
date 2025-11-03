@@ -1,8 +1,11 @@
+import torch
 import os
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from typing import Dict, Any
+import json
+import faiss
 
 from problem_parser import ProblemParser
 from gcn_model import SimpleGCN
@@ -12,44 +15,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
-from google.cloud import aiplatform
-import google.auth
+
 
 # --- PoC Sample Data ---
-sample_problems = {
-    1: "What is the derivative of $x^2$?",
-    2: "Solve the equation $x^2 - 4 = 0$.",
-    3: "Explain the Pythagorean theorem, which is $a^2 + b^2 = c^2$.",
-    4: "What are the roots of the quadratic equation $x^2 - 5x + 6 = 0$?",
-}
 
-from typing import Dict, Any
 
-# --- Helper function for Dual Embedding ---
-def get_dual_embedding(problem: Dict[str, Any], parser: ProblemParser, text_embedding_model: SentenceTransformer, gcn_model: SimpleGCN):
-    # 1. Get text embedding
-    parsed_text = problem.get('parsed_text', problem.get('text', ''))
-    text_embedding = text_embedding_model.encode([parsed_text])[0]
-
-    # 2. Create graph and get graph embedding
-    G = parser.create_graph_representation(problem)
-    
-    if G.number_of_nodes() > 1:
-        # 3. Generate node features
-        node_features = {}
-        for node in G.nodes():
-            node_features[node] = text_embedding_model.encode([node])[0]
-        
-        # 4. Get graph embedding
-        graph_embedding = gcn_model.forward(G, node_features)
-    else:
-        # Handle cases with no graph structure (e.g., query with no formulas/concepts)
-        graph_embedding = np.zeros(gcn_model.W1.shape[1]) # Zero vector of output size
-
-    # 5. Combine embeddings
-    combined_embedding = np.concatenate([text_embedding, graph_embedding])
-    
-    return combined_embedding
+from utils import get_dual_embedding
 
 # --- Model and Client Loading Logic (within lifespan) ---
 @asynccontextmanager
@@ -58,8 +29,90 @@ async def lifespan(app: FastAPI):
     print("Loading embedding and parsing models...")
     app.state.parser = ProblemParser()
     app.state.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-    app.state.gcn_model = SimpleGCN(input_dim=384, hidden_dim=128, output_dim=64)
+    
+    # Load trained GCN model
+    input_dim = app.state.embedding_model.get_sentence_embedding_dimension() # 384
+    app.state.gcn_model = SimpleGCN(input_dim=input_dim, hidden_dim=128, output_dim=64)
+    gcn_model_path = os.path.join(os.path.dirname(__file__), 'gcn_model.pth')
+    app.state.gcn_model.load_state_dict(torch.load(gcn_model_path))
+    app.state.gcn_model.eval() # Set to evaluation mode
+
+    # Load concept to index mapping
+    concept_to_idx_path = os.path.join(os.path.dirname(__file__), 'concept_to_idx.json')
+    with open(concept_to_idx_path, 'r', encoding='utf-8') as f:
+        app.state.concept_to_idx = json.load(f)
+
+    # Pre-calculate GCN concept embeddings
+    num_concepts = len(app.state.concept_to_idx)
+    concept_features = torch.zeros((num_concepts, input_dim))
+    for concept, idx in app.state.concept_to_idx.items():
+        concept_features[idx] = torch.tensor(app.state.embedding_model.encode([concept])[0], dtype=torch.float32)
+    
+    # Build adjacency matrix from knowledge base for GCN concept embeddings
+    adj = torch.zeros((num_concepts, num_concepts))
+    for item in app.state.knowledge_base:
+        item_concepts = item.get('concepts', [])
+        for i in range(len(item_concepts)):
+            for j in range(i + 1, len(item_concepts)):
+                c1_idx = app.state.concept_to_idx.get(item_concepts[i])
+                c2_idx = app.state.concept_to_idx.get(item_concepts[j])
+                if c1_idx is not None and c2_idx is not None:
+                    adj[c1_idx, c2_idx] = 1
+                    adj[c2_idx, c1_idx] = 1 # Symmetric
+
+    adj = adj + torch.eye(num_concepts) # Add self-loops
+    deg = torch.sum(adj, dim=1)
+    deg_inv_sqrt = torch.pow(deg, -0.5)
+    deg_inv_sqrt[torch.isinf(deg_inv_sqrt)] = 0.
+    adj_normalized = torch.diag(deg_inv_sqrt) @ adj @ torch.diag(deg_inv_sqrt)
+
+    with torch.no_grad():
+        app.state.gcn_concept_embeddings = app.state.gcn_model(concept_features, adj_normalized)
+
     print("Embedding and parsing models loaded.")
+
+    # --- Load Knowledge Base and Build FAISS Index ---
+    print("Loading knowledge base and building FAISS index...")
+    KNOWLEDGE_BASE_DIR = os.path.join(os.path.dirname(__file__), 'knowledge_base')
+    knowledge_base = []
+    for filename in os.listdir(KNOWLEDGE_BASE_DIR):
+        if filename.endswith('.json'):
+            file_path = os.path.join(KNOWLEDGE_BASE_DIR, filename)
+            with open(file_path, 'r', encoding='utf-8') as f:
+                knowledge_base.append(json.load(f))
+    app.state.knowledge_base = knowledge_base
+
+    # Build FAISS index
+    embeddings = []
+    ids = [item['id'] for item in knowledge_base]
+
+    # Prepare adjacency matrix for GCN
+    num_concepts = len(app.state.concept_to_idx)
+    adj = torch.ones((num_concepts, num_concepts)) # Fully connected for initial concept embeddings
+    adj = adj + torch.eye(num_concepts) # Add self-loops
+    deg = torch.sum(adj, dim=1)
+    deg_inv_sqrt = torch.pow(deg, -0.5)
+    deg_inv_sqrt[torch.isinf(deg_inv_sqrt)] = 0.
+    adj_normalized = torch.diag(deg_inv_sqrt) @ adj @ torch.diag(deg_inv_sqrt)
+
+    with torch.no_grad():
+        gcn_concept_embeddings_for_index = app.state.gcn_model(concept_features, adj_normalized)
+
+    for item in knowledge_base:
+        embedding = get_dual_embedding(item, app.state.parser, app.state.embedding_model, app.state.gcn_model, app.state.concept_to_idx, gcn_concept_embeddings_for_index)
+        embeddings.append(embedding)
+        
+    embeddings = np.array(embeddings).astype('float32')
+    
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension) # Using L2 distance for this example
+    index = faiss.IndexIDMap(index)
+    faiss_ids = np.array(range(len(ids)))
+    index.add_with_ids(embeddings, faiss_ids)
+    
+    app.state.faiss_index = index
+    app.state.id_map = {i: doc_id for i, doc_id in enumerate(ids)}
+    print(f"FAISS index built successfully with {index.ntotal} vectors.")
 
     print("Loading local LLM...")
     model_id = "google/flan-t5-base"
@@ -74,22 +127,6 @@ async def lifespan(app: FastAPI):
     llm = HuggingFacePipeline(pipeline=pipe)
     app.state.llm = llm
     print("Local LLM loaded.")
-
-    print("Initializing Vertex AI Client...")
-    INDEX_ENDPOINT_ID = os.getenv("INDEX_ENDPOINT_ID")
-    DEPLOYED_INDEX_ID = os.getenv("DEPLOYED_INDEX_ID")  # Read the new environment variable
-    if INDEX_ENDPOINT_ID:
-        credentials, project_id = google.auth.default()
-        aiplatform.init(project=project_id, location="asia-northeast3")
-        app.state.index_endpoint = aiplatform.MatchingEngineIndexEndpoint(
-            index_endpoint_name=INDEX_ENDPOINT_ID
-        )
-        app.state.deployed_index_id = DEPLOYED_INDEX_ID  # Store it in the app state
-        print(f"Vertex AI client initialized for endpoint: {INDEX_ENDPOINT_ID}")
-    else:
-        app.state.index_endpoint = None
-        app.state.deployed_index_id = None
-        print("Warning: INDEX_ENDPOINT_ID not set. Vertex AI client not initialized.")
 
     # Create LangChain chain and store it in state
     prompt = ChatPromptTemplate.from_template(
@@ -144,37 +181,26 @@ async def solve_problem(input: ProblemInput, request: Request):
     parser = request.app.state.parser
     embedding_model = request.app.state.embedding_model
     gcn_model = request.app.state.gcn_model
-    index_endpoint = request.app.state.index_endpoint
     chain = request.app.state.chain
-
-    if not index_endpoint:
-        return {"error": "Vertex AI client is not initialized. Check server configuration."}
-
     # 1. Parse & 2. Embed (Dual Embedding)
     problem_dict = parser.parse_problem(input.problem_text)
     problem_dict['id'] = 'query' # Assign a temporary ID
     problem_dict['problem_text'] = input.problem_text
     problem_dict['concepts'] = [] # No concepts for raw query
 
-    input_embedding = get_dual_embedding(problem_dict, parser, embedding_model, gcn_model)
+    input_embedding = get_dual_embedding(problem_dict, parser, embedding_model, gcn_model, request.app.state.concept_to_idx, request.app.state.gcn_concept_embeddings)
     
-    # 3. Retrieve from Vertex AI
+    # 3. Retrieve from FAISS
     k = 1
-    response = index_endpoint.find_neighbors(
-        queries=[input_embedding.tolist()],
-        num_neighbors=k,
-        deployed_index_id=os.getenv("DEPLOYED_INDEX_ID")
-    )
+    distances, indices = request.app.state.faiss_index.search(np.array([input_embedding]).astype('float32'), k)
     
-    # The response structure from Vertex AI is different from FAISS
-    if response and response[0]:
-        neighbor = response[0][0]
-        most_similar_id = int(neighbor.id)
-        most_similar_problem_text = sample_problems.get(most_similar_id, "Similar problem text not found.")
+    if indices[0][0] != -1:
+        most_similar_id = request.app.state.id_map[indices[0][0]]
+        # For now, retrieve problem text from sample_problems. In a real scenario, this would come from a knowledge base lookup.
+        most_similar_problem_text = next((item['problem_text'] for item in request.app.state.knowledge_base if item['id'] == most_similar_id), "Similar problem text not found.")
     else:
         most_similar_id = -1
         most_similar_problem_text = "No similar problem found."
-
     # 4. Generate
     generated_thought_process = chain.invoke({
         "question": input.problem_text,
